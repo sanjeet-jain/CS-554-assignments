@@ -18,7 +18,9 @@ import { ObjectId } from "mongodb";
 const helpers = {
   validateStringInput(_input, inputname, trim = true) {
     if (typeof _input !== "string" || _input.trim() === "") {
-      throw new Error(`${inputname} is not a valid text input`);
+      let error = new Error(`${inputname} is not a valid text input`);
+      error.status = 400;
+      throw error;
     }
     if (trim) {
       return _input.trim();
@@ -82,7 +84,7 @@ const helpers = {
     return input;
   },
 
-  validateUserCreateInput(name, username, password) {
+  validateUserCreateInput(name, userName, password) {
     const errorMessages = {};
     try {
       name = helpers.checkName(name, "Name");
@@ -90,30 +92,30 @@ const helpers = {
       errorMessages.name = e.message;
     }
     try {
-      username = helpers.checkUsername(username, "Username");
+      userName = helpers.checkUsername(userName, "Username");
     } catch (e) {
-      errorMessages.username = e.message;
+      errorMessages.userName = e.message;
     }
     try {
       password = helpers.checkPassword(password, "Password");
     } catch (e) {
       errorMessages.password = e.message;
     }
-    return { errorMessages, name, username, password };
+    return { errorMessages, name, userName, password };
   },
-  validateUserLoginInput(username, password) {
+  validateUserLoginInput(userName, password) {
     const errorMessages = {};
     try {
-      username = helpers.checkUsername(username, "Username");
+      userName = helpers.checkUsername(userName, "Username");
     } catch (e) {
-      errorMessages.username = e.message;
+      errorMessages.userName = e.message;
     }
     try {
       password = helpers.checkPassword(password, "Password");
     } catch (e) {
       errorMessages.password = e.message;
     }
-    return { errorMessages, username, password };
+    return { errorMessages, userName, password };
   },
 
   validateInputIsNumber(input, inputName) {
@@ -129,13 +131,13 @@ const helpers = {
     return input;
   },
   checkObjectIdString(stringObjectId) {
-    this.validateStringInput(stringObjectId, "objectID");
-    stringObjectId = stringObjectId.trim();
+    stringObjectId = this.validateStringInput(stringObjectId, "objectID");
     if (!ObjectId.isValid(stringObjectId)) {
       let error = new Error("object id is not valid");
       error.status = 400;
       throw error;
     }
+    return stringObjectId;
   },
   checkTitle(_input, inputName) {
     let input;
@@ -256,6 +258,27 @@ const helpers = {
       errorMessages.skillLevel = e.message;
     }
     return { errorMessages, title, ingredients, steps, skillLevel };
+  },
+  validateReviewUserInput(rating, review) {
+    const errorMessages = {};
+
+    if (rating < 1 || rating > 5) {
+      errorMessages.rating = "Rating must be between 1 to 5";
+    }
+
+    if (rating.toString().length > 1) {
+      errorMessages.rating = "Rating must be a whole number";
+    }
+    try {
+      review = helpers.validateStringInput(review, "Review");
+      if (review.length < 25) {
+        throw new Error("Review must be min 25 characters");
+      }
+    } catch (e) {
+      errorMessages.review = e.message;
+    }
+
+    return { errorMessages, rating, review };
   },
 };
 export { helpers as default };
