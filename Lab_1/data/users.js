@@ -9,8 +9,10 @@ export const create = async (name, username, password) => {
   ({ errorMessages, name, username, password } =
     helpers.validateUserCreateInput(name, username, password));
   if (Object.keys(errorMessages).length > 0) {
-    errorMessages.status = 400;
-    throw errorMessages;
+    let error = {};
+    error.status = 400;
+    error.errorMessages = errorMessages;
+    throw error;
   }
   const usersCollection = await users();
   const existUser = await usersCollection.findOne({ username });
@@ -44,8 +46,10 @@ export const login = async (username, password) => {
     password
   ));
   if (Object.keys(errorMessages).length > 0) {
-    errorMessages.status = 400;
-    throw errorMessages;
+    let error = {};
+    error.status = 400;
+    error.errorMessages = errorMessages;
+    throw error;
   }
   const usersCollection = await users();
   const existUser = await usersCollection.findOne({ username });

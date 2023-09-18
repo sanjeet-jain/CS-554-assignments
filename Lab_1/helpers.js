@@ -137,5 +137,125 @@ const helpers = {
       throw error;
     }
   },
+  checkTitle(_input, inputName) {
+    let input;
+    try {
+      input = this.validateStringInput(_input, inputName);
+    } catch (e) {
+      let error = new Error(`${inputName} allows only valid non empty strings`);
+      error.status = 400;
+      throw error;
+    }
+    if (input.length < 5) {
+      let error = new Error(`${inputName} must be atleast 5 characters`);
+      error.status = 400;
+      throw error;
+    }
+    // if (!input.match(/^(?=.{5,}$)[\w]+$/i)) {
+    //   throw new Error(
+    //     `${inputName} allows only alphabets and numbers without spaces and must be atleast 5 characters `
+    //   );
+    // }
+    return input;
+  },
+  areAllStrings(array, minLength, maxLength) {
+    for (let i = 0; i < array.length; i++) {
+      try {
+        array[i] = this.validateStringInput(array[i]);
+        if (
+          (minLength && array[i].length < minLength) ||
+          (maxLength && array[i].length > maxLength)
+        ) {
+          throw new Error(
+            `${array[i]} at pos ${i} isnt withing the limits of ${minLength} and ${maxLength}`
+          );
+        }
+      } catch (e) {
+        return false;
+      }
+    }
+    return { valid: true, array: array };
+  },
+  checkIngredients(_inputArray, inputName) {
+    if (!Array.isArray(_inputArray)) {
+      let error = new Error(`${inputName} must be an Array`);
+      error.status = 400;
+      throw error;
+    }
+    if (_inputArray.length < 4) {
+      let error = new Error(`${inputName} must have atleast 4`);
+      error.status = 400;
+      throw error;
+    }
+    let validArray = this.areAllStrings(_inputArray, 4, 50);
+    if (!validArray.valid) {
+      let error = new Error(`${inputName} must only have strings in it`);
+      error.status = 400;
+      throw error;
+    }
+    return validArray.array;
+  },
+  checkSteps(_inputArray, inputName) {
+    if (!Array.isArray(_inputArray)) {
+      let error = new Error(`${inputName} must be an Array`);
+      error.status = 400;
+      throw error;
+    }
+    if (_inputArray.length < 5) {
+      let error = new Error(`${inputName}  must have atleast 5`);
+      error.status = 400;
+      throw error;
+    }
+    let validArray = this.areAllStrings(_inputArray, 20);
+    if (!validArray.valid) {
+      let error = new Error(`${inputName} must only have strings in it`);
+      error.status = 400;
+      throw error;
+    }
+    return validArray.array;
+  },
+  checkSkillLevel(_input, inputName) {
+    let input;
+    try {
+      input = this.validateStringInput(_input, inputName);
+    } catch (e) {
+      let error = new Error(`${inputName} allows only valid non empty strings`);
+      error.status = 400;
+      throw error;
+    }
+    if (!["novice", "intermediate", "advanced"].includes(input.toLowerCase())) {
+      let error = new Error(
+        `${inputName} allows only the following values : "novice", "intermediate", "advanced" `
+      );
+      error.status = 400;
+      throw error;
+    }
+    input = input[0].toUpperCase() + input.toLowerCase().substring(1);
+    return input;
+  },
+  validateRecipeUserInput(title, ingredients, steps, skillLevel) {
+    const errorMessages = {};
+    try {
+      title = helpers.checkTitle(title, "Title");
+    } catch (e) {
+      errorMessages.title = e.message;
+    }
+    try {
+      ingredients = helpers.checkIngredients(ingredients, "Ingredients");
+    } catch (e) {
+      errorMessages.ingredients = e.message;
+    }
+    try {
+      steps = helpers.checkSteps(steps, "Steps");
+    } catch (e) {
+      errorMessages.steps = e.message;
+    }
+    try {
+      skillLevel = helpers.checkSkillLevel(skillLevel, "SkillLevel");
+    } catch (e) {
+      errorMessages.skillLevel = e.message;
+    }
+    return { errorMessages, title, ingredients, steps, skillLevel };
+  },
 };
 export { helpers as default };
