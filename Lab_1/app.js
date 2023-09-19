@@ -2,7 +2,7 @@
 
 import express from "express";
 import session from "express-session";
-//import configMiddleWares from "./middleware.js";
+import configMiddleWares from "./middleware.js";
 const app = express();
 import configRoutes from "./routes/index.js";
 
@@ -18,7 +18,7 @@ app.use(
     cookie: { maxAge: 1800000 },
   })
 );
-//configMiddleWares(app);
+configMiddleWares(app);
 configRoutes(app);
 
 app.listen(3000, () => {
