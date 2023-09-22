@@ -6,7 +6,6 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon app.js",
-    "seed": "node -e \"import('./seed.js').then(seed => seed.seed());\"",
     "start": "node app.js"
   },
   "author": "Sanjeet Vinod Jain 20012768",
