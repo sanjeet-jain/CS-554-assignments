@@ -26,4 +26,14 @@ type Author {
   numOfBooks: Int,
   books(limit: Int): [Book] 
 }
-`;
+
+type Query {
+  authors: [Author],
+  books:[Book],
+  getAuthorById(_id: String!): Author,
+  getBookById(_id: String!): Book,
+  booksByGenre (genre: String!): [Book],
+  booksByPriceRange (min: Float!, max: Float!) : [Book],
+  searchAuthorsByName (searchTerm: String!): [Author]
+}
+  `;
