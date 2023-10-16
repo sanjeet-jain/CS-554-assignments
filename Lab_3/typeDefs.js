@@ -36,4 +36,55 @@ type Query {
   booksByPriceRange (min: Float!, max: Float!) : [Book],
   searchAuthorsByName (searchTerm: String!): [Author]
 }
+
+type Mutation {
+  addAuthor(
+    first_name: String!,
+    last_name: String!,
+    date_of_birth: String!,
+    hometownCity: String!,
+    hometownState: String!
+  ) : Author,
+  editAuthor(
+    _id: String!,
+    first_name: String,
+    last_name: String,
+    date_of_birth: String,
+    hometownCity: String,
+    hometownState: String
+  ) : Author,
+  removeAuthor(
+    _id: String!
+  ) : Author,
+  addBook(
+    title: String!,
+    genres: [String!]!,
+    publicationDate: String!,
+    publisher: String!,
+    summary: String!,
+    isbn: String!,
+    language: String!,
+    pageCount: Int!,
+    price: Float!,
+    format: [String!]!,
+    authorId: String!
+  ) : Book,
+  editBook(
+    _id: String!,
+    title: String,
+    genres: [String],
+    publicationDate: String,
+    publisher: String,
+    summary: String,
+    isbn: String,
+    language: String,
+    pageCount: Int,
+    price: Float,
+    format: [String],
+    authorId: String
+  ) : Book,
+  removeBook(
+    _id: String!
+  ) : Book
+}
   `;
