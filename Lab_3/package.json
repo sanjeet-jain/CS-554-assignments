@@ -1,7 +1,7 @@
 {
-  "name": "cs-554-lab-2",
+  "name": "cs-554-lab-3",
   "version": "1.0.0",
-  "description": "cs-554-lab-2 for cs-554 SIT",
+  "description": "cs-554-lab-3 for cs-554 SIT",
   "main": "app.js",
   "type": "module",
   "scripts": {
