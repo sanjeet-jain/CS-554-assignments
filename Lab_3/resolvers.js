@@ -64,11 +64,9 @@ export const resolvers = {
     },
     getAuthorById: async (_, args) => {
       if (isUUIDValid(args?._id?.trim())) {
-        if (await client.exists(`author:${args._id.trim()}`)) {
+        if (await client.exists(`${args._id.trim()}`)) {
           // Data found in the cache, parse and return it
-          const unflatData = JSON.parse(
-            await client.get(`author:${args._id.trim()}`)
-          );
+          const unflatData = JSON.parse(await client.get(`${args._id.trim()}`));
           if (!unflatData) {
             throw new GraphQLError(`Internal Server Error`, {
               extensions: { code: "INTERNAL_SERVER_ERROR" },
@@ -83,10 +81,7 @@ export const resolvers = {
               extensions: { code: "NOT_FOUND" },
             });
           }
-          await client.set(
-            `author:${args._id.trim()}`,
-            JSON.stringify(author[0])
-          );
+          await client.set(`${args._id.trim()}`, JSON.stringify(author[0]));
           return author[0];
         }
       } else {
@@ -97,11 +92,9 @@ export const resolvers = {
     },
     getBookById: async (_, args) => {
       if (isUUIDValid(args?._id?.trim())) {
-        if (await client.exists(`book:${args._id.trim()}`)) {
+        if (await client.exists(`${args._id.trim()}`)) {
           // Data found in the cache, parse and return it
-          const unflatData = JSON.parse(
-            await client.get(`book:${args._id.trim()}`)
-          );
+          const unflatData = JSON.parse(await client.get(`${args._id.trim()}`));
           if (!unflatData) {
             throw new GraphQLError(`Internal Server Error`, {
               extensions: { code: "INTERNAL_SERVER_ERROR" },
@@ -116,7 +109,7 @@ export const resolvers = {
               extensions: { code: "NOT_FOUND" },
             });
           }
-          await client.set(`book:${args._id.trim()}`, JSON.stringify(book[0]));
+          await client.set(`${args._id.trim()}`, JSON.stringify(book[0]));
           return book[0];
         }
       } else {
@@ -126,14 +119,10 @@ export const resolvers = {
       }
     },
     booksByGenre: async (_, args) => {
-      if (
-        args?.genre &&
-        typeof args.genre == string &&
-        args.genre.trim() !== ""
-      ) {
-        if (await client.exists(`genre:${args.genre.trim().toLowerCase()}`)) {
+      if (args?.genre && args.genre.trim() !== "") {
+        if (await client.exists(`${args.genre.trim().toLowerCase()}`)) {
           const unflatData = JSON.parse(
-            await client.get(`genre:${args.genre.trim().toLowerCase()}`)
+            await client.get(`${args.genre.trim().toLowerCase()}`)
           );
           if (!unflatData) {
             throw new GraphQLError(`Internal Server Error`, {
@@ -159,13 +148,10 @@ export const resolvers = {
             );
           }
           await client.set(
-            `genre:${args.genre.trim().toLowerCase()}`,
+            `${args.genre.trim().toLowerCase()}`,
             JSON.stringify(genreBooks)
           );
-          await client.expire(
-            `genre:${args.genre.trim().toLowerCase()}`,
-            60 * 60
-          );
+          await client.expire(`${args.genre.trim().toLowerCase()}`, 60 * 60);
           return genreBooks;
         }
       } else {
@@ -204,7 +190,7 @@ export const resolvers = {
             .toArray();
           if (!booksByPriceRange || booksByPriceRange.length === 0) {
             throw new GraphQLError(
-              `Book with ${args.genre.trim().toLowerCase()} Not Found`,
+              `Book with price between ${args.min} and ${args.max} Not Found`,
               {
                 extensions: { code: "NOT_FOUND" },
               }
@@ -220,6 +206,62 @@ export const resolvers = {
           );
           return booksByPriceRange;
         }
+      }
+    },
+    searchAuthorsByName: async (_, args) => {
+      if (args?.searchTerm && args.searchTerm.trim() !== "") {
+        if (await client.exists(`${args.searchTerm.trim().toLowerCase()}`)) {
+          const unflatData = JSON.parse(
+            await client.get(`${args.searchTerm.trim().toLowerCase()}`)
+          );
+          if (!unflatData) {
+            throw new GraphQLError(`Internal Server Error`, {
+              extensions: { code: "INTERNAL_SERVER_ERROR" },
+            });
+          }
+          return unflatData;
+        } else {
+          const authors = await authorsCollection();
+          const authorsBySearchTerm = await authors
+            .find({
+              $or: [
+                {
+                  first_name: {
+                    $regex: new RegExp(args.searchTerm.trim(), "i"),
+                  },
+                },
+                {
+                  last_name: {
+                    $regex: new RegExp(args.searchTerm.trim(), "i"),
+                  },
+                },
+              ],
+            })
+            .toArray();
+          if (!authorsBySearchTerm || authorsBySearchTerm.length === 0) {
+            throw new GraphQLError(
+              `Author with first name or last name having the search term ${args.searchTerm
+                .trim()
+                .toLowerCase()} Not Found`,
+              {
+                extensions: { code: "NOT_FOUND" },
+              }
+            );
+          }
+          await client.set(
+            `${args.searchTerm.trim().toLowerCase()}`,
+            JSON.stringify(authorsBySearchTerm)
+          );
+          await client.expire(
+            `${args.searchTerm.trim().toLowerCase()}`,
+            60 * 60
+          );
+          return authorsBySearchTerm;
+        }
+      } else {
+        throw new GraphQLError(`bad genre input`, {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
       }
     },
   },
