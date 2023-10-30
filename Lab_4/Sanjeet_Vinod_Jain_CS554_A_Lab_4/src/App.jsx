@@ -4,6 +4,10 @@ import Home from "./components/Home";
 import CollectionList from "./components/CollectionList";
 import CollectionId from "./components/CollectionId";
 import { Route, Link, Routes } from "react-router-dom";
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
 
 function App() {
   return (
@@ -21,7 +25,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/collection/page/:page" element={<CollectionList />} />
-          {/* <Route path="/collection/:id" element={<CollectionId />} /> */}
+          <Route path="/collection/:id" element={<CollectionId />} />
         </Routes>
       </div>
     </>
