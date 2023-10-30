@@ -1,28 +1,43 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { Grid, Button } from "@mui/material";
 import CollectionIdCardList from "./CollectionIdCardList";
 
-function CollectionList(props) {
+function CollectionList() {
   let navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [museumData, setMuseumData] = useState(undefined);
   const { page } = useParams();
+
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const departmentIds = query.get("departmentIds") ?? "";
   const paginatedDataRef = useRef([]);
 
   useEffect(() => {
+    const isPageValid = /^\d+$/.test(page);
+    const pageNumber = parseInt(page, 10);
+    if (
+      !isPageValid ||
+      isNaN(pageNumber) ||
+      pageNumber < 1 ||
+      !Number.isInteger(pageNumber)
+    ) {
+      return navigate(`/error/400`);
+    }
+
     async function fetchData() {
       try {
         const { data } = await axios.get(
           `https://collectionapi.metmuseum.org/public/collection/v1/objects?departmentIds=${departmentIds}`
         );
-
         const itemsPerPage = 50;
-        const startIndex = (page - 1) * itemsPerPage;
+        if (pageNumber > Math.ceil(data.objectIDs.length / itemsPerPage)) {
+          return navigate(`/error/404`);
+        }
+
+        const startIndex = (pageNumber - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         paginatedDataRef.current = data.objectIDs.slice(startIndex, endIndex);
         setMuseumData(data);

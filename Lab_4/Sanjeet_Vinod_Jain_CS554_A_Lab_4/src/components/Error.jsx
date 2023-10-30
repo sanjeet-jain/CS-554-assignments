@@ -1,13 +1,14 @@
-import React from "react";
-import Button from "@mui/material/Button";
 import { useParams } from "react-router-dom";
 
-function Home(props) {
+function Home() {
   const { status } = useParams();
   console.log(status);
   return (
     <div>
-      <p>{status} Not found</p>
+      <p>
+        {(status == 404 || !status) && "404 Not Found "}
+        {status == 400 && "400 Bad Input "}
+      </p>
     </div>
   );
 }

@@ -20,9 +20,11 @@ function App() {
             Welcome to the Metropolitan Museum of Art API Single Page
             Application using React
           </h1>
-          <Link className="showlink" to="/collection/page/1">
-            Collections
-          </Link>
+          <SearchInput />
+          <Link to="/">Home</Link>
+          <br />
+          <Link to="/collection/page/1">Collection</Link>
+          <br />
         </header>
         <br />
         <br />
