@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { Grid, Button } from "@mui/material";
+import CollectionIdCardList from "./CollectionIdCardList";
 
 function CollectionList(props) {
   let navigate = useNavigate();
@@ -10,7 +11,7 @@ function CollectionList(props) {
   const { page } = useParams();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const departmentIds = query.get("departmentIds");
+  const departmentIds = query.get("departmentIds") ?? "";
   const paginatedDataRef = useRef([]);
 
   useEffect(() => {
@@ -28,14 +29,15 @@ function CollectionList(props) {
         setLoading(false);
       } catch (e) {
         console.log(e);
+        navigate(`/error/${e.response.status}`);
       }
     }
     fetchData();
-  }, [page, departmentIds]);
+  }, [page, departmentIds, navigate]);
 
   const nextPage = () => {
     const currentPage = parseInt(page);
-    if (currentPage < Math.ceil(museumData.objectIDs.length / 10)) {
+    if (currentPage < Math.ceil(museumData.objectIDs.length / 50)) {
       const nextPage = currentPage + 1;
       navigate(`/collection/page/${nextPage}?departmentIds=${departmentIds}`);
     }
@@ -58,13 +60,15 @@ function CollectionList(props) {
   }
 
   const cardsData = paginatedDataRef.current.map((id) => (
-    <div key={id}>
-      <Link to={`/CollectionId/${id}`}>Link to Collection {id}</Link>
-    </div>
+    <Grid item xs={2} key={id}>
+      <Link to={`/collection/${id}`}>
+        <CollectionIdCardList id={id}></CollectionIdCardList>
+      </Link>
+    </Grid>
   ));
 
   const currentPage = parseInt(page);
-  const totalPages = Math.ceil(museumData.objectIDs.length / 10);
+  const totalPages = Math.ceil(museumData.objectIDs.length / 50);
 
   return (
     <div>
@@ -72,7 +76,9 @@ function CollectionList(props) {
       <div>
         <br />
         <br />
-        <Grid>{cardsData}</Grid>
+        <Grid container spacing={1}>
+          {cardsData}
+        </Grid>
       </div>
       <div>
         {currentPage > 1 && <Button onClick={prevPage}>Previous Page</Button>}

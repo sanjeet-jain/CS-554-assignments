@@ -1,8 +1,9 @@
 import viteLogo from "/vite.svg";
 import "./App.css";
 import Home from "./components/Home";
+import Error from "./components/Error";
 import CollectionList from "./components/CollectionList";
-import CollectionId from "./components/CollectionId";
+import CollectionIdCardList from "./components/CollectionIdCardList";
 import { Route, Link, Routes } from "react-router-dom";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
@@ -15,7 +16,10 @@ function App() {
       <div className="App">
         <header className="App-header">
           <img src={viteLogo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to the TV Maze API</h1>
+          <h1 className="App-title">
+            Welcome to the Metropolitan Museum of Art API Single Page
+            Application using React
+          </h1>
           <Link className="showlink" to="/collection/page/1">
             Collections
           </Link>
@@ -25,7 +29,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/collection/page/:page" element={<CollectionList />} />
-          <Route path="/collection/:id" element={<CollectionId />} />
+          <Route path="/collection/:id" element={<CollectionIdCardList />} />
+          <Route path="/error/:status?" element={<Error />} />
+          <Route path="*" element={<Error />} />
         </Routes>
       </div>
     </>
