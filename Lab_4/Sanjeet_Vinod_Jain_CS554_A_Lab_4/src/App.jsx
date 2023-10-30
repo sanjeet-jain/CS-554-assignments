@@ -10,6 +10,8 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
+import SearchInput from "./components/SearchInput";
+import SearchResults from "./components/SearchResults";
 function App() {
   return (
     <>
@@ -26,6 +28,7 @@ function App() {
             <Link to="/collection/page/1">Collections</Link>
             <br />
           </nav>
+          <SearchInput />
         </header>
         <br />
         <br />
@@ -33,6 +36,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/collection/page/:page" element={<CollectionList />} />
           <Route path="/collection/:id" element={<CollectionIdCardList />} />
+          <Route path="/search" element={<SearchResults />} />
           <Route path="/error/:status?" element={<Error />} />
           <Route path="*" element={<Error />} />
         </Routes>
