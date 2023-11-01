@@ -16,11 +16,25 @@ function SearchResults() {
   const page = query.get("page") || "";
 
   useEffect(() => {
+    const isPageValid = /^\d+$/.test(page);
+    const pageNumber = parseInt(page, 10);
+    if (
+      !isPageValid ||
+      isNaN(pageNumber) ||
+      pageNumber < 1 ||
+      !Number.isInteger(pageNumber)
+    ) {
+      return navigate(`/error/400`);
+    }
+
     async function fetchSearchResults() {
       try {
         const { data } = await axios.get(
           `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${searchQuery}`
         );
+        if (data.total === 0) {
+          return navigate(`/error/404`);
+        }
         const itemsPerPage = 50;
         const startIndex = (page - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
