@@ -1,41 +1,61 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
-import { addToCollection, giveUpCollection } from "@/features/comicSlice.js";
+import {
+  addToCollection,
+  giveUpCollection,
+  editSearchTerm,
+} from "@/features/comicSlice.js";
 import { useQuery } from "@apollo/client";
 import { GET_COMICS } from "@/lib/query.js";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import noimg from "@/assets/noimg.svg";
+import { useState } from "react";
 
+import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 const ComicList = () => {
   let { pageNum } = useParams();
+
   pageNum = parseInt(pageNum);
   let navigate = useNavigate();
   const dispatch = useDispatch();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQueryParam, setSearchQueryParam] = useState("");
 
   const { loading, error, data } = useQuery(GET_COMICS, {
-    variables: { pageNum },
+    variables: { pageNum, searchQuery: searchQueryParam },
   });
 
   const selectedCollection = useSelector(
     (state) => state?.comics.selectedCollection
   );
+  const searchTerm = useSelector((state) => state?.comics.searchTerm);
+  if (searchTerm && !searchQueryParam) setSearchQueryParam(searchTerm);
+
+  const handleSearch = () => {
+    dispatch(editSearchTerm(searchQuery));
+
+    setSearchQueryParam(searchQuery);
+    setSearchQuery("");
+  };
+  const handleClear = () => {
+    dispatch(editSearchTerm(""));
+
+    setSearchQueryParam("");
+    setSearchQuery("");
+  };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error : {error.message}</p>;
 
-  const totalPages = Math.ceil(data?.comics?.length / 20);
+  const totalPages = Math.ceil(data?.comics.total ?? 0 / 20);
 
   const nextPage = () => {
     if (pageNum < totalPages) {
       const nextPage = pageNum + 1;
-      navigate(`/collection/page/${nextPage}`);
+      navigate(`/marvel-comics/page/${nextPage}`);
     }
   };
 
@@ -45,17 +65,49 @@ const ComicList = () => {
       navigate(`/marvel-comics/page/${prevPage}`);
     }
   };
-
   return (
     <div>
+      <div>
+        <input
+          type="text"
+          placeholder={"Search comics..."}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <Button onClick={handleSearch}>Search</Button>
+        <Button onClick={handleClear}>Clear</Button>
+      </div>
+      {searchTerm && (
+        <>
+          <br></br>
+          <div>
+            Showing Reslts for Search Term: <Badge>{searchTerm}</Badge>
+          </div>
+          <br></br>
+        </>
+      )}
       <div>ComicList - Viewing Page {pageNum}</div>
+      <div>
+        {pageNum > 1 && <Button onClick={prevPage}>Previous Page</Button>}
+        {pageNum < totalPages && <Button onClick={nextPage}>Next Page</Button>}
+      </div>
       <div className="grid grid-cols-5 gap-4">
-        {data.comics.map((comic) => (
-          <Card key={comic.id}>
-            <CardHeader>
-              <CardTitle>{comic.title}</CardTitle>
-              <CardDescription>{comic.description}</CardDescription>
-            </CardHeader>
+        {data.comics.comics.map((comic) => (
+          <Card key={comic.id} className="h-full overflow-default">
+            <Link to={`/marvel-comics/${comic.id}`}>
+              <CardHeader>
+                <img
+                  src={
+                    comic.images.map((x) => {
+                      if (x.__typename === "Image" && x.path && x.extension)
+                        return `${x.path}.${x.extension}`;
+                    })[0] ?? noimg
+                  }
+                  alt={comic.title}
+                />
+                <CardTitle>{comic.title}</CardTitle>
+              </CardHeader>
+            </Link>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 {selectedCollection?.comics?.find(
@@ -70,14 +122,10 @@ const ComicList = () => {
                   </Button>
                 )}
               </div>
+              <div></div>
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      <div>
-        {pageNum > 1 && <Button onClick={prevPage}>Previous Page</Button>}
-        {pageNum < totalPages && <Button onClick={nextPage}>Next Page</Button>}
       </div>
     </div>
   );

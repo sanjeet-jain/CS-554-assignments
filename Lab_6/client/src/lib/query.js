@@ -1,23 +1,26 @@
 import { gql } from "@apollo/client";
 
 export const GET_COMICS = gql`
-  query GetComics($pageNum: Int!) {
-    comics(pageNum: $pageNum) {
-      id
-      title
-      images {
-        path
-        extension
+  query GetComics($pageNum: Int!, $searchQuery: String!) {
+    comics(searchQuery: $searchQuery, pageNum: $pageNum) {
+      comics {
+        id
+        title
+        images {
+          path
+          extension
+        }
+        description
+        dates {
+          type
+          date
+        }
+        prices {
+          type
+          price
+        }
       }
-      description
-      dates {
-        type
-        date
-      }
-      prices {
-        type
-        price
-      }
+      total
     }
   }
 `;

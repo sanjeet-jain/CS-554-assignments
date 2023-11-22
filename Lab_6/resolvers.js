@@ -35,7 +35,10 @@ function callMarvelUrl(url) {
   return axios
     .get(url)
     .then((response) => {
-      return response.data.data.results;
+      return {
+        comics: response.data.data.results,
+        total: response.data.data.total,
+      };
     })
     .catch((error) => {
       // This block is executed for network errors and custom exceptions.
@@ -52,61 +55,124 @@ function callMarvelUrl(url) {
 
 export const resolvers = {
   Query: {
-    comics: async (_, { pageNum }) => {
+    comics: async (_, { pageNum, searchQuery }) => {
       if (parseInt(pageNum, 10)) {
         if (await client.exists(`pageNum:${pageNum}`)) {
           // Data found in the cache, parse and return it
           const unflatData = JSON.parse(await client.get(`pageNum:${pageNum}`));
+          // use searchQuery to filter the results
+          if (searchQuery) {
+            const filteredComics = unflatData.comics.filter((comic) =>
+              comic.title.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            return { comics: filteredComics, total: filteredComics.length };
+          }
           if (!unflatData) {
             throw new GraphQLError(`Internal Server Error`, {
-              extensions: { code: "INTERNAL_SERVER_ERROR", status: 500 },
+              extensions: {
+                code: "INTERNAL_SERVER_ERROR",
+                http: {
+                  status: 500,
+                },
+              },
             });
           }
           return unflatData;
         } else {
-          const comics = await callMarvelUrl(
+          const { comics, total } = await callMarvelUrl(
             generateUrl(`/comics`, pageNum * 20)
           );
-          if (comics.length === 0) {
+          if (!comics || !Array.isArray(comics) || comics.length === 0) {
             // No more comics 404 status
             throw new GraphQLError(`No more comics`, {
-              extensions: { code: "NOT_FOUND", status: 404 },
+              extensions: {
+                code: "NOT_FOUND",
+                http: {
+                  status: 404,
+                },
+              },
             });
           }
-          await client.set(`pageNum:${pageNum}`, JSON.stringify(comics));
-          return comics;
+          // use searchQuery to filter the results
+          if (searchQuery) {
+            const filteredComics = comics.filter((comic) =>
+              comic.title.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            if (
+              !filteredComics ||
+              !Array.isArray(filteredComics) ||
+              filteredComics.length === 0
+            ) {
+              // No more comics 404 status
+              throw new GraphQLError(`No more comics`, {
+                extensions: {
+                  code: "NOT_FOUND",
+                  http: {
+                    status: 404,
+                  },
+                },
+              });
+            }
+            return { comics: filteredComics, total: filteredComics.length };
+          }
+
+          await client.set(
+            `pageNum:${pageNum}`,
+            JSON.stringify({ comics, total })
+          );
+          return { comics, total };
         }
       } else {
         throw new GraphQLError(`incorrect id`, {
-          extensions: { code: "bad_id" },
+          extensions: {
+            code: "BAD_REQUEST",
+            http: {
+              status: 400,
+            },
+          },
         });
       }
     },
     comic: async (_, { id }) => {
-      if (parseInt(id, 10)) {
+      if (parseInt(id)) {
         if (await client.exists(`${id}`)) {
           // Data found in the cache, parse and return it
           const unflatData = JSON.parse(await client.get(`${id}`));
           if (!unflatData) {
             throw new GraphQLError(`Internal Server Error`, {
-              extensions: { code: "INTERNAL_SERVER_ERROR" },
+              extensions: {
+                code: "INTERNAL_SERVER_ERROR",
+                http: {
+                  status: 500,
+                },
+              },
             });
           }
           return unflatData;
         } else {
-          const comic = await callMarvelUrl(generateUrl(`/comics/${id}`));
-          if (comic.length === 0) {
+          const { comics } = await callMarvelUrl(generateUrl(`/comics/${id}`));
+          if (!comics || !Array.isArray(comics) || comics.length === 0) {
             // No more comics 404
-            throw new GraphQLError(`No more comics`, {
-              extensions: { code: "NOT_FOUND", status: 404 },
+            throw new GraphQLError(`No comics with that id`, {
+              extensions: {
+                code: "NOT_FOUND",
+                http: {
+                  status: 404,
+                },
+              },
             });
           }
-          await client.set(`${id}`, JSON.stringify(comic[0]));
-          return comic[0];
+          await client.set(`${id}`, JSON.stringify(comics[0]));
+          return comics[0];
         }
       } else {
         throw new GraphQLError(`incorrect id`, {
-          extensions: { code: "bad_id" },
+          extensions: {
+            code: "BAD_REQUEST",
+            http: {
+              status: 400,
+            },
+          },
         });
       }
     },

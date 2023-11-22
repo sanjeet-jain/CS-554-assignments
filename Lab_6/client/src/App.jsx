@@ -23,16 +23,22 @@ function App() {
         <ApolloProvider client={client}>
           <div>
             <h1>App - Marvel API</h1>
-            <Button>
-              <Link to="/marvel-comics/page/1">ComicList</Link>
-            </Button>
-            <Button>
-              <Link to="/marvel-comics/">Comic by id</Link>
-            </Button>
-            <Button>
-              <Link to="/marvel-comics/collections">Collections</Link>
-            </Button>
-            <Outlet />
+            <br></br>
+            <div>
+              <Button>
+                <Link to="/marvel-comics/page/1">ComicList</Link>
+              </Button>
+              {/* <Button>
+                <Link to="/marvel-comics/">Comic by id</Link>
+              </Button> */}
+              <Button>
+                <Link to="/marvel-comics/collections">Collections</Link>
+              </Button>
+            </div>
+            <br></br>
+            <div className="gap-3">
+              <Outlet />
+            </div>
           </div>
         </ApolloProvider>
       </PersistGate>

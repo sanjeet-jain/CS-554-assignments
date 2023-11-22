@@ -1,7 +1,12 @@
 export const typeDefs = `#graphql
 type Query {
-  comics(pageNum: Int): [Comic]
+  comics(pageNum: Int,searchQuery:String): ComicResult
   comic(id: Int): Comic
+}
+
+type ComicResult {
+  comics: [Comic]
+  total: Int
 }
 
 type Comic {

@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/card";
 
 import noimg from "@/assets/noimg.svg";
+import { Label } from "@radix-ui/react-label";
 const Comic = () => {
   let { id } = useParams();
   id = parseInt(id);
@@ -26,7 +28,6 @@ const Comic = () => {
   });
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error : {error.message}</p>;
-  console.log(data.comic);
   return (
     <div>
       {/* <div>
@@ -36,13 +37,35 @@ const Comic = () => {
       <div>
         <img src={data?.comic?.thumbnail} alt={data?.comic?.title} />
       </div> */}
-      <Card key={data.comic.id}>
+      <Card key={data.comic.id} className="grid grid-cols-2">
         <CardHeader>
-          <CardTitle>{data.comic.title}</CardTitle>
-          <CardDescription>{data.comic.description}</CardDescription>
+          <img
+            className="w-3/4 h-3/4"
+            src={
+              data.comic.images.map((x) => {
+                if (x.__typename === "Image" && x.path && x.extension)
+                  return `${x.path}.${x.extension}`;
+              })[0] ?? noimg
+            }
+            alt={data.comic.title}
+          />
         </CardHeader>
         <CardContent>
-          <img src={data.comic.thumbnail ?? noimg} alt={data.comic.title} />
+          <CardTitle>{data.comic.title}</CardTitle>
+          <Label>
+            Print Price :{" "}
+            {data.comic.prices.find((x) => x.type === "printPrice")?.price}
+          </Label>
+          <br></br>
+          <Label>
+            On Sale Date :{" "}
+            {data.comic.dates.find((x) => x.type === "onsaleDate")?.date
+              ? dayjs(
+                  data.comic.dates.find((x) => x.type === "onsaleDate")?.date
+                ).format("DD/MM/YYYY")
+              : "N/A"}
+          </Label>
+
           <div className="grid grid-cols-2 gap-4">
             {selectedCollection?.comics?.find(
               (collectionComic) => collectionComic.id === data.comic.id
@@ -56,13 +79,9 @@ const Comic = () => {
               </Button>
             )}
           </div>
+          <CardDescription>{data.comic.description}</CardDescription>
         </CardContent>
       </Card>
-      <div>
-        <Button onClick={() => dispatch(addToCollection(data?.comic))}>
-          Add to Collection
-        </Button>
-      </div>
     </div>
   );
 };

@@ -5,7 +5,7 @@ const comicSlice = createSlice({
   initialState: {
     // Array of inactive collections
     inactiveCollections: [],
-
+    searchTerm: "",
     // Active collection
     selectedCollection: {
       id: 1,
@@ -14,6 +14,9 @@ const comicSlice = createSlice({
     },
   },
   reducers: {
+    editSearchTerm: (state, action) => {
+      state.searchTerm = action.payload;
+    },
     setCurrentCollection: (state, action) => {
       // store the selected collection in the state to a variable
       const selectedCollection = state.inactiveCollections.find(
@@ -30,7 +33,7 @@ const comicSlice = createSlice({
     },
     createCollection: (state, action) => {
       const newCollection = {
-        id: (state.inactiveCollections.length + 1).toString(),
+        id: (state.inactiveCollections?.length ?? 0) + 2,
         name: action.payload.name,
         comics: [],
       };
@@ -49,6 +52,7 @@ const comicSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
+  editSearchTerm,
   createCollection,
   setCurrentCollection,
   addToCollection,
