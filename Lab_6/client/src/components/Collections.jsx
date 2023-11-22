@@ -46,6 +46,14 @@ const Collections = () => {
   return (
     <div className="grid grid-cols-2 gap-6">
       <div>
+        <h2 className="text-2xl font-bold mb-2">Featured Collections</h2>
+        <p className="text-gray-600 mb-8">
+          Create your own curated collections that showcase the best Marvel
+          stories.
+        </p>
+      </div>
+      <br></br>
+      <div>
         <div className="text-lg"> Create a Collection</div>
         <div>
           <div className="flex items-center space-x-2">
@@ -56,7 +64,7 @@ const Collections = () => {
               type="text"
               placeholder="Collection Name"
               value={collectionName}
-              onChange={(e) => setCollectionName(e.target.value)}
+              onChange={(e) => setCollectionName(e.target.value.trim())}
             />
             <Button onClick={handleCreateCollection}>Create Collection</Button>
           </div>

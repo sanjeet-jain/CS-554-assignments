@@ -46,12 +46,10 @@ const ComicList = () => {
     setSearchQueryParam("");
     setSearchQuery("");
   };
-
   if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error : {error.message}</p>;
+  if (error) return <p>Error :{error?.message}</p>;
 
   const totalPages = Math.ceil(data?.comics.total ?? 0 / 20);
-
   const nextPage = () => {
     if (pageNum < totalPages) {
       const nextPage = pageNum + 1;
@@ -72,7 +70,7 @@ const ComicList = () => {
           type="text"
           placeholder={"Search comics title..."}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value.trim())}
         />
         <Button onClick={handleSearch}>Search</Button>
         <Button onClick={handleClear}>Clear</Button>
@@ -86,11 +84,17 @@ const ComicList = () => {
           <br></br>
         </>
       )}
-      <div>ComicList - Viewing Page {pageNum}</div>
+      <br></br>
+      <div>
+        ComicList - Viewing Page <Badge>{pageNum}</Badge>
+      </div>
+      <br></br>
       <div>
         {pageNum > 1 && <Button onClick={prevPage}>Previous Page</Button>}
         {pageNum < totalPages && <Button onClick={nextPage}>Next Page</Button>}
       </div>
+      <br></br>
+
       <div className="grid grid-cols-5 gap-4">
         {data.comics.comics.map((comic) => (
           <Card key={comic.id} className="h-full overflow-default">
@@ -127,6 +131,12 @@ const ComicList = () => {
           </Card>
         ))}
       </div>
+      <br></br>
+      <div>
+        {pageNum > 1 && <Button onClick={prevPage}>Previous Page</Button>}
+        {pageNum < totalPages && <Button onClick={nextPage}>Next Page</Button>}
+      </div>
+      <br></br>
     </div>
   );
 };

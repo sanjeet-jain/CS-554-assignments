@@ -41,12 +41,7 @@ function App() {
                 <Link to="/marvel-comics/collections">View Collections</Link>
               </Button>
             </div>
-            <h2 className="text-2xl font-bold mb-2">Featured Collections</h2>
-            <p className="text-gray-600 mb-8">
-              Create your own curated collections that showcase the best Marvel
-              stories.
-            </p>
-            {/* Add featured collections or other relevant content here */}
+
             <div className="gap-3">
               <Outlet />
             </div>

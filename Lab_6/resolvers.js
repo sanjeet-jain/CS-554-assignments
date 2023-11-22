@@ -68,7 +68,7 @@ export const resolvers = {
             return { comics: filteredComics, total: filteredComics.length };
           }
           if (!unflatData) {
-            throw new GraphQLError(`Internal Server Error`, {
+            throw new GraphQLError(`500 : Internal Server Error`, {
               extensions: {
                 code: "INTERNAL_SERVER_ERROR",
                 http: {
@@ -84,7 +84,7 @@ export const resolvers = {
           );
           if (!comics || !Array.isArray(comics) || comics.length === 0) {
             // No more comics 404 status
-            throw new GraphQLError(`No more comics`, {
+            throw new GraphQLError(`404 : No more comics`, {
               extensions: {
                 code: "NOT_FOUND",
                 http: {
@@ -104,7 +104,7 @@ export const resolvers = {
               filteredComics.length === 0
             ) {
               // No more comics 404 status
-              throw new GraphQLError(`No more comics`, {
+              throw new GraphQLError(`404 : No more comics`, {
                 extensions: {
                   code: "NOT_FOUND",
                   http: {
@@ -123,7 +123,7 @@ export const resolvers = {
           return { comics, total };
         }
       } else {
-        throw new GraphQLError(`incorrect id`, {
+        throw new GraphQLError(`400 : incorrect id`, {
           extensions: {
             code: "BAD_REQUEST",
             http: {
@@ -139,7 +139,7 @@ export const resolvers = {
           // Data found in the cache, parse and return it
           const unflatData = JSON.parse(await client.get(`${id}`));
           if (!unflatData) {
-            throw new GraphQLError(`Internal Server Error`, {
+            throw new GraphQLError(`500 : Internal Server Error`, {
               extensions: {
                 code: "INTERNAL_SERVER_ERROR",
                 http: {
@@ -153,7 +153,7 @@ export const resolvers = {
           const { comics } = await callMarvelUrl(generateUrl(`/comics/${id}`));
           if (!comics || !Array.isArray(comics) || comics.length === 0) {
             // No more comics 404
-            throw new GraphQLError(`No comics with that id`, {
+            throw new GraphQLError(`404 : No comics with that id`, {
               extensions: {
                 code: "NOT_FOUND",
                 http: {
@@ -166,7 +166,7 @@ export const resolvers = {
           return comics[0];
         }
       } else {
-        throw new GraphQLError(`incorrect id`, {
+        throw new GraphQLError(`400 : incorrect id`, {
           extensions: {
             code: "BAD_REQUEST",
             http: {
