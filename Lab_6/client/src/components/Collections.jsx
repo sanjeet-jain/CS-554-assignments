@@ -91,6 +91,9 @@ const Collections = () => {
                       <CardHeader>
                         <img
                           src={
+                            comic.thumbnail.path +
+                              "." +
+                              comic.thumbnail.extension ??
                             comic.images.map((x) => {
                               if (
                                 x.__typename === "Image" &&
@@ -98,7 +101,8 @@ const Collections = () => {
                                 x.extension
                               )
                                 return `${x.path}.${x.extension}`;
-                            })[0] ?? noimg
+                            })[0] ??
+                            noimg
                           }
                           alt={comic.title}
                         />
@@ -156,6 +160,9 @@ const Collections = () => {
                         <CardHeader>
                           <img
                             src={
+                              comic.thumbnail.path +
+                                "." +
+                                comic.thumbnail.extension ??
                               comic.images.map((x) => {
                                 if (
                                   x.__typename === "Image" &&
@@ -163,7 +170,8 @@ const Collections = () => {
                                   x.extension
                                 )
                                   return `${x.path}.${x.extension}`;
-                              })[0] ?? noimg
+                              })[0] ??
+                              noimg
                             }
                             alt={comic.title}
                           />

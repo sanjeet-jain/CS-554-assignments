@@ -28,6 +28,7 @@ const Comic = () => {
   });
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error : {error.message}</p>;
+
   return (
     <div>
       {/* <div>
@@ -42,10 +43,14 @@ const Comic = () => {
           <img
             className="w-3/4 h-3/4"
             src={
+              data.comic.thumbnail.path +
+                "." +
+                data.comic.thumbnail.extension ??
               data.comic.images.map((x) => {
                 if (x.__typename === "Image" && x.path && x.extension)
                   return `${x.path}.${x.extension}`;
-              })[0] ?? noimg
+              })[0] ??
+              noimg
             }
             alt={data.comic.title}
           />

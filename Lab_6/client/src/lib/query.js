@@ -19,6 +19,10 @@ export const GET_COMICS = gql`
           type
           price
         }
+        thumbnail {
+          extension
+          path
+        }
       }
       total
     }
@@ -28,8 +32,6 @@ export const GET_COMICS = gql`
 export const GET_COMIC = gql`
   query GetComic($id: Int) {
     comic(id: $id) {
-      id
-      title
       id
       title
       images {
@@ -44,6 +46,10 @@ export const GET_COMIC = gql`
       prices {
         type
         price
+      }
+      thumbnail {
+        extension
+        path
       }
     }
   }

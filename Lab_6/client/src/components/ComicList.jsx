@@ -102,10 +102,12 @@ const ComicList = () => {
               <CardHeader>
                 <img
                   src={
+                    comic.thumbnail.path + "." + comic.thumbnail.extension ??
                     comic.images.map((x) => {
                       if (x.__typename === "Image" && x.path && x.extension)
                         return `${x.path}.${x.extension}`;
-                    })[0] ?? noimg
+                    })[0] ??
+                    noimg
                   }
                   alt={comic.title}
                 />
