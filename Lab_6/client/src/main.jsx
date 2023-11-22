@@ -1,7 +1,6 @@
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
-
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ComicList from "@/components/ComicList.jsx";
 import Comic from "@/components/Comic.jsx";
@@ -13,7 +12,7 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        path: "/marvel-comics/page/:page",
+        path: "/marvel-comics/page/:pageNum",
         element: <ComicList />,
       },
       {

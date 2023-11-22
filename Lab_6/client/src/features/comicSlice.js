@@ -1,38 +1,58 @@
 import { createSlice, current } from "@reduxjs/toolkit";
 
 const comicSlice = createSlice({
-  name: "comic",
+  name: "comics",
   initialState: {
-    value: [],
+    // Array of inactive collections
+    inactiveCollections: [],
+
+    // Active collection
+    selectedCollection: {
+      id: 1,
+      name: "defaultCollection",
+      comics: [],
+    },
   },
   reducers: {
-    next: (state) => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based off those changes.
-      // Also, no return statement is required from these functions.
-      state.value.push("next");
-      console.log("next", current(state));
+    setCurrentCollection: (state, action) => {
+      // store the selected collection in the state to a variable
+      const selectedCollection = state.inactiveCollections.find(
+        (collection) => collection.id === action.payload
+      );
+      // remove the selected collection from the inactive collections
+      state.inactiveCollections = state.inactiveCollections.filter(
+        (collection) => collection.id !== action.payload
+      );
+      // add the selected collection to the inactive collections
+      state.inactiveCollections.push(state.selectedCollection);
+      // set the selected collection to the active collection
+      state.selectedCollection = selectedCollection;
     },
-    previous: (state) => {
-      state.value.push("previous");
-      console.log("previous", current(state));
+    createCollection: (state, action) => {
+      const newCollection = {
+        id: (state.inactiveCollections.length + 1).toString(),
+        name: action.payload.name,
+        comics: [],
+      };
+      state.inactiveCollections.push(newCollection);
     },
     addToCollection: (state, action) => {
-      console.log("addToCollection", action);
-      state.value.push("addToCollection");
-      console.log("addToCollection", current(state));
+      state.selectedCollection.comics.push(action.payload);
     },
     giveUpCollection: (state, action) => {
-      state.value.push("giveUpCollection");
-      console.log("giveUpCollection", current(state));
+      state.selectedCollection.comics = state.selectedCollection.comics.filter(
+        (comic) => comic.id !== action.payload.id
+      );
     },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { next, previous, addToCollection, giveUpCollection } =
-  comicSlice.actions;
+export const {
+  createCollection,
+  setCurrentCollection,
+  addToCollection,
+  giveUpCollection,
+} = comicSlice.actions;
 
 export default comicSlice.reducer;
