@@ -70,7 +70,7 @@ const ComicList = () => {
       <div>
         <input
           type="text"
-          placeholder={"Search comics..."}
+          placeholder={"Search comics title..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

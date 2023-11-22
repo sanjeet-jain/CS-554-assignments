@@ -4,6 +4,7 @@ import {
   createCollection,
   setCurrentCollection,
   giveUpCollection,
+  deleteCollection,
 } from "@/features/comicSlice.js";
 import { Button } from "@/components/ui/button.jsx";
 import {
@@ -36,6 +37,10 @@ const Collections = () => {
 
   const handleSelectedCollection = (collectionId) => {
     dispatch(setCurrentCollection(collectionId));
+  };
+
+  const handleCollectionDeletion = (collectionId) => {
+    dispatch(deleteCollection(collectionId));
   };
 
   return (
@@ -123,6 +128,12 @@ const Collections = () => {
                       onClick={() => handleSelectedCollection(collection.id)}
                     >
                       Set as Current Collection
+                    </Button>
+                    <Button
+                      className="bg-red-500"
+                      onClick={() => handleCollectionDeletion(collection.id)}
+                    >
+                      Delete
                     </Button>
                   </CardTitle>
                 </CardHeader>

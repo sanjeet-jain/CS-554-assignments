@@ -21,21 +21,32 @@ function App() {
     <Provider store={store}>
       <PersistGate persistor={persistor}>
         <ApolloProvider client={client}>
-          <div>
-            <h1>App - Marvel API</h1>
-            <br></br>
-            <div>
+          <div className="container mx-auto p-5">
+            <h1 className="text-4xl font-bold mb-4">
+              Welcome to Marvel Comics App
+            </h1>
+            <p className="text-lg mb-4">
+              Explore a vast collection of Marvel comics, create your own
+              collections, and enjoy discovering the exciting world of
+              superheroes and villains.
+            </p>
+            <div className="flex space-x-4 mb-8">
               <Button>
-                <Link to="/marvel-comics/page/1">ComicList</Link>
+                <Link to="/">Home</Link>
               </Button>
-              {/* <Button>
-                <Link to="/marvel-comics/">Comic by id</Link>
-              </Button> */}
               <Button>
-                <Link to="/marvel-comics/collections">Collections</Link>
+                <Link to="/marvel-comics/page/1">Browse Comics</Link>
+              </Button>
+              <Button>
+                <Link to="/marvel-comics/collections">View Collections</Link>
               </Button>
             </div>
-            <br></br>
+            <h2 className="text-2xl font-bold mb-2">Featured Collections</h2>
+            <p className="text-gray-600 mb-8">
+              Create your own curated collections that showcase the best Marvel
+              stories.
+            </p>
+            {/* Add featured collections or other relevant content here */}
             <div className="gap-3">
               <Outlet />
             </div>

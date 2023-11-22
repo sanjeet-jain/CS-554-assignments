@@ -31,6 +31,11 @@ const comicSlice = createSlice({
       // set the selected collection to the active collection
       state.selectedCollection = selectedCollection;
     },
+    deleteCollection(state, action) {
+      state.inactiveCollections = state.inactiveCollections.filter(
+        (collection) => collection.id !== action.payload
+      );
+    },
     createCollection: (state, action) => {
       const newCollection = {
         id: (state.inactiveCollections?.length ?? 0) + 2,
@@ -52,6 +57,7 @@ const comicSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
+  deleteCollection,
   editSearchTerm,
   createCollection,
   setCurrentCollection,
