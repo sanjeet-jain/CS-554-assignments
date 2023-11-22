@@ -31,7 +31,7 @@ const Collections = () => {
   const dispatch = useDispatch();
 
   const handleCreateCollection = () => {
-    dispatch(createCollection({ name: collectionName }));
+    dispatch(createCollection({ name: collectionName.trim() }));
     setCollectionName("");
   };
 
@@ -64,7 +64,7 @@ const Collections = () => {
               type="text"
               placeholder="Collection Name"
               value={collectionName}
-              onChange={(e) => setCollectionName(e.target.value.trim())}
+              onChange={(e) => setCollectionName(e.target.value)}
             />
             <Button onClick={handleCreateCollection}>Create Collection</Button>
           </div>

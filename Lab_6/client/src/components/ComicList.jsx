@@ -35,9 +35,9 @@ const ComicList = () => {
   if (searchTerm && !searchQueryParam) setSearchQueryParam(searchTerm);
 
   const handleSearch = () => {
-    dispatch(editSearchTerm(searchQuery));
+    dispatch(editSearchTerm(searchQuery.trim()));
 
-    setSearchQueryParam(searchQuery);
+    setSearchQueryParam(searchQuery.trim());
     setSearchQuery("");
   };
   const handleClear = () => {
@@ -70,7 +70,7 @@ const ComicList = () => {
           type="text"
           placeholder={"Search comics title..."}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value.trim())}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
         <Button onClick={handleSearch}>Search</Button>
         <Button onClick={handleClear}>Clear</Button>
