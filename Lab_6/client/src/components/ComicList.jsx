@@ -46,6 +46,10 @@ const ComicList = () => {
     setSearchQueryParam("");
     setSearchQuery("");
   };
+  const handleAddToCollection = (comic) => {
+    if (selectedCollection.comics.length < 20) dispatch(addToCollection(comic));
+    else alert("You can only have 20 comics in a collection");
+  };
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error :{error?.message}</p>;
 
@@ -63,6 +67,7 @@ const ComicList = () => {
       navigate(`/marvel-comics/page/${prevPage}`);
     }
   };
+
   return (
     <div>
       <div>
@@ -123,7 +128,7 @@ const ComicList = () => {
                     Give up Collection
                   </Button>
                 ) : (
-                  <Button onClick={() => dispatch(addToCollection(comic))}>
+                  <Button onClick={() => handleAddToCollection(comic)}>
                     Add to Collection
                   </Button>
                 )}

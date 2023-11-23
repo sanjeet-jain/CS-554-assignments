@@ -23,6 +23,11 @@ const Comic = () => {
     (state) => state?.comics.selectedCollection
   );
 
+  const handleAddToCollection = (comic) => {
+    if (selectedCollection.comics.length < 20) dispatch(addToCollection(comic));
+    else alert("You can only have 20 comics in a collection");
+  };
+
   const { loading, error, data } = useQuery(GET_COMIC, {
     variables: { id },
   });
@@ -79,7 +84,7 @@ const Comic = () => {
                 Give up Collection
               </Button>
             ) : (
-              <Button onClick={() => dispatch(addToCollection(data.comic))}>
+              <Button onClick={() => handleAddToCollection(data.comic)}>
                 Add to Collection
               </Button>
             )}
