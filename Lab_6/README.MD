@@ -44,7 +44,7 @@ Certainly! Here's a formatted version of the README with step-by-step instructio
    npm run server
    ```
 
-8. To run the Angular client separately, use:
+8. To run the React client separately, use:
 
    ```bash
    npm run client
