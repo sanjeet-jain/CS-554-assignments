@@ -101,6 +101,9 @@ const getAllAuthors = gql`
       first_name
       last_name
       numOfBooks
+      hometownCity
+      hometownState
+      date_of_birth
     }
   }
 `;
@@ -219,11 +222,16 @@ const Authors = () => {
     return <Loading />;
   }
 
-  if (error) {
-    return <div>Error</div>;
-  }
-  if (loading) {
-    return <Loading />;
+  function setFormData(author: any) {
+    console.log(author);
+    form.reset({
+      id: author?._id,
+      first_name: author?.first_name,
+      last_name: author?.last_name,
+      date_of_birth: dayjs(author?.date_of_birth).toDate(),
+      hometownCity: author?.hometownCity,
+      hometownState: author?.hometownState,
+    });
   }
 
   const handleDeleteAuthor = async (id: string) => {
@@ -277,9 +285,7 @@ const Authors = () => {
       <div className="p-0 m-10 grid grid-cols-6 gap-6">
         <Dialog onOpenChange={resetForm}>
           <DialogTrigger asChild>
-            <Button variant="outline" onClick={() => setOpen(true)}>
-              ADD AUTHOR
-            </Button>
+            <Button variant="outline">ADD AUTHOR</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] border border-white bg-black">
             <DialogHeader>
@@ -437,7 +443,7 @@ const Authors = () => {
 
               <Dialog onOpenChange={resetForm}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" onClick={() => setOpen(true)}>
+                  <Button variant="outline" onClick={() => setFormData(author)}>
                     EDIT
                   </Button>
                 </DialogTrigger>
