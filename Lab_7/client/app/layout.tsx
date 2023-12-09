@@ -20,15 +20,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div>
-          <Button className="border-white">
+        <div className="p-0 m-5">
+          <Button className="border border-white">
             <Link href="/">Home</Link>
           </Button>
-          <Link href="/authors">Authors</Link>
-          <Link href="/books">Books</Link>
+          <Button className="border border-white">
+            <Link href="/authors">Authors</Link>
+          </Button>
+          <Button className="border border-white">
+            <Link href="/books">Books</Link>
+          </Button>
         </div>
-        <br></br>
-        <br></br>
         <ApolloWrapper>{children}</ApolloWrapper>
       </body>
     </html>

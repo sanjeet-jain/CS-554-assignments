@@ -196,7 +196,9 @@ export const resolvers = {
             },
           });
         }
-        return unflatData;
+        return unflatData.sort((a, b) =>
+          a.last_name.localeCompare(b.last_name)
+        );
       } else {
         const authors = await authorsCollection();
         const allauthors = await authors.find({}).toArray();
@@ -529,7 +531,7 @@ export const resolvers = {
       return newAuthor;
     },
     editAuthor: async (_, args) => {
-      if (!args.length === 0) {
+      if (!args) {
         throw new GraphQLError(`edit author needs inputs`, {
           extensions: { code: "BAD_INPUT" },
           http: {
