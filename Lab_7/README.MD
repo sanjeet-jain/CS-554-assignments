@@ -17,3 +17,10 @@ to seed
 npm run seed
 
 make sure redis is running as well !
+
+sudo service redis-server start
+
+redis-cli
+PING input should give back pong
+
+FLUSHALL

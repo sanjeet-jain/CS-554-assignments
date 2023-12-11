@@ -26,6 +26,7 @@
     "@radix-ui/react-toast": "^1.1.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "cs554-sanjeet-vinod-jain-lab7": "file:..",
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.10",
     "graphql": "^16.8.1",
