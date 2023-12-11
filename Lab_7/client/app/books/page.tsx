@@ -281,7 +281,7 @@ const Books = () => {
   };
   return (
     <div>
-      <div className="p-0 m-10 grid grid-cols-3 gap-6">
+      <div className="p-0 m-10 grid grid-cols-6 gap-6">
         {data?.books?.map((book: any) => (
           <Card key={book?._id} className="flex flex-col justify-center">
             <CardHeader>
