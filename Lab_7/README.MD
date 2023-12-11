@@ -15,3 +15,5 @@ npm run client
 
 to seed
 npm run seed
+
+make sure redis is running as well !
