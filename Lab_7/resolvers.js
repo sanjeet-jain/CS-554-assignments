@@ -1,7 +1,6 @@
 import { GraphQLError } from "graphql";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat.js";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
 dayjs.extend(customParseFormat);
 import {
   authors as authorsCollection,
