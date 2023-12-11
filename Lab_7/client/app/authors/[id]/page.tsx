@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -50,7 +50,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 const formSchema = z.object({
   id: z.string().readonly(),
   first_name: z
@@ -161,21 +161,19 @@ const editAuthorMutation = gql`
 function useFetchAuthor(id: string) {
   const { data, error, loading, refetch } = useQuery(getAuthorById, {
     variables: { id: id, limit: 3 },
+    fetchPolicy: "no-cache",
   });
   return { data, error, loading };
 }
 
 const Author = () => {
+  const router = useRouter();
   const params: any = useParams();
   const id: string = params.id;
+
   const { data, error, loading } = useFetchAuthor(id);
-  const [isDialogOpen, setOpen] = useState(false);
-  const [removeAuthor] = useMutation(deleteAuthorMutation, {
-    refetchQueries: [
-      getAuthorById, // DocumentNode object parsed with gql
-      "getAuthorById", // Query name
-    ],
-  });
+  const [redirect, setRedirect] = useState(false);
+  const [removeAuthor] = useMutation(deleteAuthorMutation, {});
   const [editAuthor] = useMutation(editAuthorMutation, {
     refetchQueries: [
       getAuthorById, // DocumentNode object parsed with gql
@@ -199,6 +197,9 @@ const Author = () => {
     alert("Success! Please close the form ");
     form.reset();
   }
+  if (redirect) {
+    router.push("/authors");
+  }
 
   if (error) {
     return <div>Error</div>;
@@ -206,10 +207,22 @@ const Author = () => {
   if (loading) {
     return <Loading />;
   }
-  console.log(data);
+  function setFormData(author: any) {
+    form.reset({
+      id: author?._id,
+      first_name: author?.first_name,
+      last_name: author?.last_name,
+      date_of_birth: dayjs(author?.date_of_birth).toDate(),
+      hometownCity: author?.hometownCity,
+      hometownState: author?.hometownState,
+    });
+  }
+
   const handleDeleteAuthor = async (id: string) => {
     try {
       await removeAuthor({ variables: { id } });
+      alert("Successfully deleted author");
+      setRedirect(true);
     } catch (error) {
       alert("Error deleting author:" + error);
     }
@@ -221,12 +234,11 @@ const Author = () => {
           id: values.id,
           firstName: values.first_name.toString().trim(),
           lastName: values.last_name.toString().trim(),
-          dateOfBirth: dayjs(values.date_of_birth).format("DD/MM/YYYY"),
+          dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
           hometownCity: values.hometownCity.toString().trim(),
           hometownState: values.hometownState.toString().trim(),
         },
       });
-      console.log("result", result);
     } catch (error) {
       alert("Error editing author:" + error);
     }
@@ -271,7 +283,10 @@ const Author = () => {
 
             <Dialog onOpenChange={resetForm}>
               <DialogTrigger asChild>
-                <Button variant="outline" onClick={() => setOpen(true)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setFormData(displayData)}
+                >
                   EDIT
                 </Button>
               </DialogTrigger>

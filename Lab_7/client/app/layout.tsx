@@ -21,15 +21,28 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="p-0 m-5">
-          <Button className="border border-white">
-            <Link href="/">Home</Link>
-          </Button>
-          <Button className="border border-white">
-            <Link href="/authors">Authors</Link>
-          </Button>
-          <Button className="border border-white">
-            <Link href="/books">Books</Link>
-          </Button>
+          <div className="grid grid-cols-4 gap-4">
+            <Link href="/">
+              <Button className="border border-white w-full col-span-3 flex">
+                Home
+              </Button>
+            </Link>
+            <Link href="/authors">
+              <Button className="border border-white w-full col-span-3 flex">
+                Authors
+              </Button>
+            </Link>
+            <Link href="/books">
+              <Button className="border border-white w-full col-span-3 flex">
+                Books
+              </Button>
+            </Link>
+            <Link href="/search">
+              <Button className="border border-white w-full col-span-3 flex">
+                Search
+              </Button>
+            </Link>
+          </div>
         </div>
         <ApolloWrapper>{children}</ApolloWrapper>
       </body>

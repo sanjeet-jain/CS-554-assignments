@@ -165,13 +165,14 @@ const addAuthorMutation = gql`
 `;
 
 function useFetchAuthors() {
-  const { data, error, loading, refetch } = useQuery(getAllAuthors);
+  const { data, error, loading, refetch } = useQuery(getAllAuthors, {
+    fetchPolicy: "no-cache",
+  });
   return { data, error, loading };
 }
 
 const Authors = () => {
   const { data, error, loading } = useFetchAuthors();
-  const [isDialogOpen, setOpen] = useState(false);
   const [removeAuthor] = useMutation(deleteAuthorMutation, {
     refetchQueries: [
       getAllAuthors, // DocumentNode object parsed with gql
@@ -209,7 +210,6 @@ const Authors = () => {
     form.reset();
   }
   async function onSubmitADD(values: z.infer<typeof formSchema>) {
-    console.log(values);
     await handleAddAuthor(values);
     alert("Success! Please close the form ");
     form.reset();
@@ -223,7 +223,6 @@ const Authors = () => {
   }
 
   function setFormData(author: any) {
-    console.log(author);
     form.reset({
       id: author?._id,
       first_name: author?.first_name,
@@ -248,12 +247,11 @@ const Authors = () => {
           id: values.id,
           firstName: values.first_name.toString().trim(),
           lastName: values.last_name.toString().trim(),
-          dateOfBirth: dayjs(values.date_of_birth).format("DD/MM/YYYY"),
+          dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
           hometownCity: values.hometownCity.toString().trim(),
           hometownState: values.hometownState.toString().trim(),
         },
       });
-      console.log("result", result);
     } catch (error) {
       alert("Error editing author:" + error);
     }
@@ -269,12 +267,11 @@ const Authors = () => {
           id: values.id,
           firstName: values.first_name.toString().trim(),
           lastName: values.last_name.toString().trim(),
-          dateOfBirth: dayjs(values.date_of_birth).format("DD/MM/YYYY"),
+          dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
           hometownCity: values.hometownCity.toString().trim(),
           hometownState: values.hometownState.toString().trim(),
         },
       });
-      console.log("result", result);
     } catch (error) {
       alert("Error editing author:" + error);
     }

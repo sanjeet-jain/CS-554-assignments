@@ -50,154 +50,194 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 const formSchema = z.object({
   id: z.string().readonly(),
-  first_name: z
-    .string({
-      required_error: "first_name is required.",
-    })
-    .trim()
-    .min(2, {
-      message: "First Name must be at least 1 characters.",
-    }),
-  last_name: z
-    .string({
-      required_error: "last_name is required.",
-    })
-    .trim()
-    .min(2, {
-      message: "Last Name must be at least 1 characters.",
-    }),
-  hometownCity: z
-    .string({
-      required_error: "hometownCity is required.",
-    })
-    .trim()
-    .min(2, {
-      message: "hometownCity must be at least 1 characters.",
-    }),
-  hometownState: z
-    .string({
-      required_error: "hometownState is required.",
-    })
-    .trim()
-    .min(2, {
-      message: "hometownCity must be at least 1 characters.",
-    }),
-  date_of_birth: z
-    .date()
-    .min(new Date("1900-01-01"), {
-      message: "Date of birth must be after 1900.",
-    })
-    .max(new Date(), {
-      message: "Date of birth must be after 1900.",
-    }),
+  authorId: z.string().readonly(),
+  title: z.string().trim().min(1, {
+    message: "title must be at least 1 characters.",
+  }),
+  genres: z.string().min(1),
+  format: z.string().min(1),
+  publicationDate: z.date(),
+  publisher: z.string().trim().min(1, {
+    message: "publisher must be at least 1 characters.",
+  }),
+  summary: z.string().trim().min(1, {
+    message: "summary must be at least 1 characters.",
+  }),
+  isbn: z.string().trim().min(1, {
+    message: "isbn must be at least 1 characters.",
+  }),
+  language: z.string().trim().min(1, {
+    message: "language must be at least 1 characters.",
+  }),
+  pageCount: z.number(),
+  price: z.number(),
 });
 
-const getAuthorById = gql`
-  query Query($id: String!) {
-    getAuthorById(_id: $id) {
-      date_of_birth
-      first_name
-      hometownCity
-      hometownState
-      last_name
-      numOfBooks
-      books {
+const getAllBooks = gql`
+  query GetBookById($id: String!) {
+    getBookById(_id: $id) {
+      _id
+      author {
         _id
-        format
-        genres
-        isbn
-        pageCount
-        language
-        price
-        publicationDate
-        publisher
-        summary
-        title
+        first_name
+        last_name
       }
+      format
+      genres
+      isbn
+      language
+      pageCount
+      price
+      publicationDate
+      publisher
+      summary
+      title
+    }
+  }
+`;
+
+const deletebookMutation = gql`
+  mutation RemoveBook($id: String!) {
+    removeBook(_id: $id) {
       _id
     }
   }
 `;
 
-const deleteAuthorMutation = gql`
-  mutation RemoveAuthor($id: String!) {
-    removeAuthor(_id: $id) {
-      _id
-    }
-  }
-`;
-
-const editAuthorMutation = gql`
+const editbookMutation = gql`
   mutation Mutation(
     $id: String!
-    $firstName: String
-    $lastName: String
-    $dateOfBirth: String
-    $hometownCity: String
-    $hometownState: String
+    $title: String
+    $genres: [String]
+    $publicationDate: String
+    $publisher: String
+    $summary: String
+    $isbn: String
+    $language: String
+    $pageCount: Int
+    $price: Float
+    $format: [String]
+    $authorId: String
   ) {
-    editAuthor(
+    editBook(
       _id: $id
-      first_name: $firstName
-      last_name: $lastName
-      date_of_birth: $dateOfBirth
-      hometownCity: $hometownCity
-      hometownState: $hometownState
+      title: $title
+      genres: $genres
+      publicationDate: $publicationDate
+      publisher: $publisher
+      summary: $summary
+      isbn: $isbn
+      language: $language
+      pageCount: $pageCount
+      price: $price
+      format: $format
+      authorId: $authorId
     ) {
       _id
-      date_of_birth
-      first_name
-      hometownCity
-      hometownState
-      last_name
-      numOfBooks
     }
   }
 `;
 
-function useFetchAuthor(id: string) {
-  const { data, error, loading, refetch } = useQuery(getAuthorById, {
-    variables: { id: id, limit: 3 },
+const addbookMutation = gql`
+  mutation Mutation(
+    $title: String!
+    $genres: [String!]!
+    $publicationDate: String!
+    $publisher: String!
+    $summary: String!
+    $isbn: String!
+    $language: String!
+    $pageCount: Int!
+    $price: Float!
+    $format: [String!]!
+    $authorId: String!
+  ) {
+    addBook(
+      title: $title
+      genres: $genres
+      publicationDate: $publicationDate
+      publisher: $publisher
+      summary: $summary
+      isbn: $isbn
+      language: $language
+      pageCount: $pageCount
+      price: $price
+      format: $format
+      authorId: $authorId
+    ) {
+      _id
+    }
+  }
+`;
+
+function useFetchBooks(id: string) {
+  const { data, error, loading, refetch } = useQuery(getAllBooks, {
+    variables: { id: id },
+    fetchPolicy: "no-cache",
   });
   return { data, error, loading };
 }
 
-const Author = () => {
+const Books = () => {
+  const router = useRouter();
   const params: any = useParams();
   const id: string = params.id;
-  const { data, error, loading } = useFetchAuthor(id);
+
+  const { data, error, loading } = useFetchBooks(id);
+  const [redirect, setRedirect] = useState(false);
   const [isDialogOpen, setOpen] = useState(false);
-  const [removeAuthor] = useMutation(deleteAuthorMutation, {
+  const [removebook] = useMutation(deletebookMutation);
+  const [editbook] = useMutation(editbookMutation, {
     refetchQueries: [
-      getAuthorById, // DocumentNode object parsed with gql
-      "getAuthorById", // Query name
+      getAllBooks, // DocumentNode object parsed with gql
+      "getAllBooks", // Query name
     ],
   });
-  const [editAuthor] = useMutation(editAuthorMutation, {
-    refetchQueries: [
-      getAuthorById, // DocumentNode object parsed with gql
-      "getAuthorById", // Query name
-    ],
-  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      first_name: "",
-      last_name: "",
-      date_of_birth: undefined,
-      hometownCity: "",
-      hometownState: "",
-    },
+    // defaultValues: setFormData(),
   });
+  function setFormData(book: any) {
+    form.reset({
+      id: book._id,
+      title: book.title,
+      genres: book.genres.join(","),
+      publicationDate: dayjs(book.publicationDate).toDate(),
+      publisher: book.publisher,
+      summary: book.summary,
+      isbn: book.isbn,
+      language: book.language,
+      pageCount: book.pageCount,
+      price: book.price,
+      format: book.format.join(","),
+    });
+  }
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await handleEditAuthor(values);
+    await handleEditbook({
+      id: values.id,
+      authorId: values.authorId,
+      title: values.title,
+      publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
+      publisher: values.publisher,
+      summary: values.summary,
+      isbn: values.isbn,
+      language: values.language,
+      pageCount: Number(values.pageCount),
+      price: Number(values.price),
+      format: values.format.split(","),
+      genres: values.genres.split(","),
+    });
     alert("Success! Please close the form ");
-    form.reset();
+    // form.reset();
+  }
+  if (redirect) {
+    router.push("/books");
   }
 
   if (error) {
@@ -206,80 +246,82 @@ const Author = () => {
   if (loading) {
     return <Loading />;
   }
-  console.log(data);
-  const handleDeleteAuthor = async (id: string) => {
+
+  const handleDeletebook = async (id: string) => {
     try {
-      await removeAuthor({ variables: { id } });
+      await removebook({ variables: { id } });
+      alert("Successfully deleted book");
+      setRedirect(true);
     } catch (error) {
-      alert("Error deleting author:" + error);
+      alert("Error deleting book:" + error);
     }
   };
-  const handleEditAuthor = async (values: any) => {
+  const handleEditbook = async (values: any) => {
     try {
-      const result = await editAuthor({
+      const result = await editbook({
         variables: {
           id: values.id,
-          firstName: values.first_name.toString().trim(),
-          lastName: values.last_name.toString().trim(),
-          dateOfBirth: dayjs(values.date_of_birth).format("DD/MM/YYYY"),
-          hometownCity: values.hometownCity.toString().trim(),
-          hometownState: values.hometownState.toString().trim(),
+          authorId: values.authorId,
+          title: values.title,
+          genres: values.genres,
+          publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
+          publisher: values.publisher,
+          summary: values.summary,
+          isbn: values.isbn,
+          language: values.language,
+          pageCount: Number(values.pageCount),
+          price: Number(values.price),
+          format: values.format,
         },
       });
-      console.log("result", result);
     } catch (error) {
-      alert("Error editing author:" + error);
+      console.log({ error });
+
+      alert("Error editing book:" + error);
     }
   };
   const resetForm = (value: any) => {
     form.reset();
   };
-  let displayData = data.getAuthorById;
+  let displayData = data?.getBookById;
   return (
     <div>
-      <br></br>
-      <div className="p-0 m-10 grid grid-cols-1 gap-6">
+      <div className="p-0 m-10 grid grid-cols-3 gap-6">
         <Card key={displayData?._id} className="flex flex-col justify-center">
           <CardHeader>
-            <Link href={`/authors/${displayData?._id}`}>
-              <CardTitle className="text-2xl">
-                {displayData?.first_name} {displayData?.last_name}
-              </CardTitle>
+            <Link href={`/books/${displayData?._id}`}>
+              <CardTitle className="text-2xl">{displayData?.title}</CardTitle>
             </Link>
           </CardHeader>
-          <CardContent className=" gap-2">
-            <div>first_name: {displayData.first_name}</div>
-            <div>last_name: {displayData.last_name}</div>
-            <div>date_of_birth: {displayData.date_of_birth}</div>
-            <div>hometownCity: {displayData.hometownCity}</div>
-            <div>hometownState: {displayData.hometownState}</div>
-            <div>numOfBooks: {displayData.numOfBooks}</div>
-            <div>
-              books:{"  "}
-              {displayData.books.map((book: any) => {
-                return <div key={book._id}>{book.title}</div>;
-              })}
-            </div>
+          <CardContent className="grid grid-cols-2 gap-2">
+            title: {displayData?.title}
+            <br></br>
+            genres: {displayData?.genres.join(", ")}
+            <br></br>
+            price: {displayData?.price}
+            <br></br>
           </CardContent>
           <CardFooter>
             <Button
               className="border border-white text-white"
-              onClick={() => handleDeleteAuthor(displayData._id)}
+              onClick={() => handleDeletebook(displayData._id)}
             >
               DELETE
             </Button>
-
             <Dialog onOpenChange={resetForm}>
               <DialogTrigger asChild>
-                <Button variant="outline" onClick={() => setOpen(true)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setFormData(displayData)}
+                >
                   EDIT
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] border border-white bg-black">
+              <DialogContent className="sm:max-w-[425px] border border-white bg-black  h-3/4 overflow-x-auto">
                 <DialogHeader>
-                  <DialogTitle>Edit Author</DialogTitle>
+                  <DialogTitle>Edit book</DialogTitle>
                   <DialogDescription>
-                    Make changes to Author here. Click save when you are done.
+                    Make changes to book here. Click save when you are done.
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -292,12 +334,35 @@ const Author = () => {
                       value={displayData._id}
                       {...form.register("id")}
                     />
+                    <input
+                      type="hidden"
+                      value={displayData.author._id}
+                      {...form.register("authorId")}
+                    />
                     <FormField
                       control={form.control}
-                      name="first_name"
+                      name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel> First Name</FormLabel>
+                          <FormLabel> title</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder=""
+                              {...field}
+                              value={field.value ?? ""}
+                            />
+                          </FormControl>
+                          <FormDescription>This is your title.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="publisher"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel> publisher</FormLabel>
                           <FormControl>
                             <Input
                               placeholder=""
@@ -306,7 +371,7 @@ const Author = () => {
                             />
                           </FormControl>
                           <FormDescription>
-                            This is your first name.
+                            This is your publisher.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -314,10 +379,10 @@ const Author = () => {
                     />
                     <FormField
                       control={form.control}
-                      name="last_name"
+                      name="summary"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel> Last Name</FormLabel>
+                          <FormLabel> summary</FormLabel>
                           <FormControl>
                             <Input
                               placeholder=""
@@ -326,7 +391,7 @@ const Author = () => {
                             />
                           </FormControl>
                           <FormDescription>
-                            This is your last name
+                            This is your summary.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -334,10 +399,70 @@ const Author = () => {
                     />
                     <FormField
                       control={form.control}
-                      name="date_of_birth"
+                      name="language"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel> language</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder=""
+                              {...field}
+                              value={field.value ?? ""}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            This is your language.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="pageCount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel> pageCount</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              value={field.value ?? ""}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            This is your pageCount.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel> price</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value ?? ""}
+                            />
+                          </FormControl>
+                          <FormDescription>This is your price.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="publicationDate"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel>Date of birth</FormLabel>
+                          <FormLabel>publicationDate</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -381,10 +506,10 @@ const Author = () => {
                     />
                     <FormField
                       control={form.control}
-                      name="hometownCity"
+                      name="genres"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>hometownCity</FormLabel>
+                          <FormLabel>Genres</FormLabel>
                           <FormControl>
                             <Input
                               placeholder=""
@@ -393,18 +518,19 @@ const Author = () => {
                             />
                           </FormControl>
                           <FormDescription>
-                            This is your hometownCity.
+                            Enter genres separated by commas.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
-                      name="hometownState"
+                      name="format"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>hometownState</FormLabel>
+                          <FormLabel>Format</FormLabel>
                           <FormControl>
                             <Input
                               placeholder=""
@@ -413,13 +539,34 @@ const Author = () => {
                             />
                           </FormControl>
                           <FormDescription>
-                            This is your hometownState.
+                            Enter formats separated by commas.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button type="submit">Submit</Button>
+
+                    <FormField
+                      control={form.control}
+                      name="isbn"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ISBN</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder=""
+                              {...field}
+                              value={field.value ?? ""}
+                            />
+                          </FormControl>
+                          <FormDescription>Enter ISBN.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button className="border border-white" type="submit">
+                      Submit
+                    </Button>
                   </form>
                 </Form>
               </DialogContent>
@@ -431,4 +578,4 @@ const Author = () => {
   );
 };
 
-export default Author;
+export default Books;

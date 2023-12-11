@@ -51,12 +51,13 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { useState } from "react";
 const formSchema = z.object({
-  id: z.string(),
+  id: z.string().readonly(),
+  authorId: z.string().readonly(),
   title: z.string().trim().min(1, {
     message: "title must be at least 1 characters.",
   }),
-  genres: z.array(z.string()),
-  format: z.array(z.string()),
+  genres: z.string().min(1),
+  format: z.string().min(1),
   publicationDate: z.date(),
   publisher: z.string().trim().min(1, {
     message: "publisher must be at least 1 characters.",
@@ -78,6 +79,11 @@ const getAllBooks = gql`
   query Query {
     books {
       _id
+      author {
+        _id
+        first_name
+        last_name
+      }
       format
       genres
       isbn
@@ -93,8 +99,8 @@ const getAllBooks = gql`
 `;
 
 const deletebookMutation = gql`
-  mutation Removebook($id: String!) {
-    removebook(_id: $id) {
+  mutation RemoveBook($id: String!) {
+    removeBook(_id: $id) {
       _id
     }
   }
@@ -167,13 +173,14 @@ const addbookMutation = gql`
 `;
 
 function useFetchBooks() {
-  const { data, error, loading, refetch } = useQuery(getAllBooks);
+  const { data, error, loading, refetch } = useQuery(getAllBooks, {
+    fetchPolicy: "no-cache",
+  });
   return { data, error, loading };
 }
 
 const Books = () => {
   const { data, error, loading } = useFetchBooks();
-  const [isDialogOpen, setOpen] = useState(false);
   const [removebook] = useMutation(deletebookMutation, {
     refetchQueries: [
       getAllBooks, // DocumentNode object parsed with gql
@@ -200,7 +207,7 @@ const Books = () => {
     form.reset({
       id: book._id,
       title: book.title,
-      genres: book.genres.join(", "),
+      genres: book.genres.join(","),
       publicationDate: dayjs(book.publicationDate).toDate(),
       publisher: book.publisher,
       summary: book.summary,
@@ -208,13 +215,26 @@ const Books = () => {
       language: book.language,
       pageCount: book.pageCount,
       price: book.price,
-      format: book.format.join(", "),
+      format: book.format.join(","),
     });
   }
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await handleEditbook(values);
+    await handleEditbook({
+      id: values.id,
+      authorId: values.authorId,
+      title: values.title,
+      publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
+      publisher: values.publisher,
+      summary: values.summary,
+      isbn: values.isbn,
+      language: values.language,
+      pageCount: Number(values.pageCount),
+      price: Number(values.price),
+      format: values.format.split(","),
+      genres: values.genres.split(","),
+    });
     alert("Success! Please close the form ");
     // form.reset();
   }
@@ -229,41 +249,29 @@ const Books = () => {
   const handleDeletebook = async (id: string) => {
     try {
       await removebook({ variables: { id } });
+      alert("Deleted Book");
     } catch (error) {
       alert("Error deleting book:" + error);
     }
   };
   const handleEditbook = async (values: any) => {
     try {
-      console.log({
-        id: values.id,
-        title: values.title,
-        genres: values.genres.split(","),
-        publicationDate: dayjs(values.publicationDate).format("DD/MM/YYYY"),
-        publisher: values.publisher,
-        summary: values.summary,
-        isbn: values.isbn,
-        language: values.language,
-        pageCount: Number(values.pageCount),
-        price: Number(values.price),
-        format: values.format.split(","),
-      });
       const result = await editbook({
         variables: {
           id: values.id,
+          authorId: values.authorId,
           title: values.title,
-          genres: values.genres.split(","),
-          publicationDate: dayjs(values.publicationDate).format("DD/MM/YYYY"),
+          genres: values.genres,
+          publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
           publisher: values.publisher,
           summary: values.summary,
           isbn: values.isbn,
           language: values.language,
           pageCount: Number(values.pageCount),
           price: Number(values.price),
-          format: values.format.split(","),
+          format: values.format,
         },
       });
-      console.log("result", result);
     } catch (error) {
       alert("Error editing book:" + error);
     }
@@ -318,6 +326,11 @@ const Books = () => {
                         type="hidden"
                         value={book._id}
                         {...form.register("id")}
+                      />
+                      <input
+                        type="hidden"
+                        value={book.author._id}
+                        {...form.register("authorId")}
                       />
                       <FormField
                         control={form.control}
