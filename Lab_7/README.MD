@@ -21,6 +21,5 @@ make sure redis is running as well !
 sudo service redis-server start
 
 redis-cli
-PING input should give back pong
-
+ping ( should reply back with pong)
 FLUSHALL

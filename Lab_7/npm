@@ -1,0 +1,8 @@
+
+> cs554-sanjeet-vinod-jain-lab7@1.0.0 build:client
+> npm run build --prefix client run client
+
+
+> my-app@0.1.0 build
+> next build run client
+

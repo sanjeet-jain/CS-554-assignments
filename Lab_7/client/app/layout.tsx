@@ -4,7 +4,6 @@ import "./globals.css";
 import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
