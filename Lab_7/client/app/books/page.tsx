@@ -58,7 +58,14 @@ const formSchema = z.object({
   }),
   genres: z.string().min(1),
   format: z.string().min(1),
-  publicationDate: z.date(),
+  publicationDate: z
+    .date()
+    .min(new Date("1900-01-01"), {
+      message: "publicationDate must be after 1900.",
+    })
+    .max(new Date(), {
+      message: "publicationDate must be after 1900.",
+    }),
   publisher: z.string().trim().min(1, {
     message: "publisher must be at least 1 characters.",
   }),
