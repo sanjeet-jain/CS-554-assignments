@@ -1,5 +1,5 @@
 {
-  "name": "lab6",
+  "name": "cs554-sanjeet-vinod-jain-lab7",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,7 +12,7 @@
     "seed": "node -e \"import('./seed.js').then(seed => seed.seed().catch(console.log));\""
   },
   "keywords": [],
-  "author": "",
+  "author": "Sanjeet Vinod Jain 20012768",
   "license": "ISC",
   "type": "module",
   "dependencies": {
