@@ -163,7 +163,7 @@ function useFetchAuthor(id: string) {
     variables: { id: id, limit: 3 },
     fetchPolicy: "no-cache",
   });
-  return { data, error, loading };
+  return { data, error, loading, refetch };
 }
 
 const Author = () => {
@@ -171,7 +171,7 @@ const Author = () => {
   const params: any = useParams();
   const id: string = params.id;
 
-  const { data, error, loading } = useFetchAuthor(id);
+  const { data, error, loading, refetch } = useFetchAuthor(id);
   const [redirect, setRedirect] = useState(false);
   const [removeAuthor] = useMutation(deleteAuthorMutation, {});
   const [editAuthor] = useMutation(editAuthorMutation, {
@@ -193,9 +193,13 @@ const Author = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await handleEditAuthor(values);
-    alert("Success! Please close the form ");
-    form.reset();
+    try {
+      await handleEditAuthor(values);
+      form.reset();
+      alert("Success! Please close the form ");
+    } catch (error) {
+      alert("Error editing author:" + error);
+    }
   }
   if (redirect) {
     router.push("/authors");
@@ -228,22 +232,18 @@ const Author = () => {
     }
   };
   const handleEditAuthor = async (values: any) => {
-    try {
-      const result = await editAuthor({
-        variables: {
-          id: values.id,
-          firstName: values.first_name.toString().trim(),
-          lastName: values.last_name.toString().trim(),
-          dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
-          hometownCity: values.hometownCity.toString().trim(),
-          hometownState: values.hometownState.toString().trim(),
-        },
-      });
-    } catch (error) {
-      alert("Error editing author:" + error);
-    }
+    const result = await editAuthor({
+      variables: {
+        id: values.id,
+        firstName: values.first_name.toString().trim(),
+        lastName: values.last_name.toString().trim(),
+        dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
+        hometownCity: values.hometownCity.toString().trim(),
+        hometownState: values.hometownState.toString().trim(),
+      },
+    });
   };
-  const resetForm = (value: any) => {
+  const resetForm = () => {
     form.reset();
   };
   let displayData = data.getAuthorById;
@@ -260,6 +260,7 @@ const Author = () => {
             </Link>
           </CardHeader>
           <CardContent className=" gap-2">
+            <div>authorId: {displayData._id}</div>
             <div>first_name: {displayData.first_name}</div>
             <div>last_name: {displayData.last_name}</div>
             <div>date_of_birth: {displayData.date_of_birth}</div>

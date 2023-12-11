@@ -71,8 +71,24 @@ const formSchema = z.object({
   language: z.string().trim().min(1, {
     message: "language must be at least 1 characters.",
   }),
-  pageCount: z.number(),
-  price: z.number(),
+  pageCount: z.string().refine(
+    (value) => {
+      const numberValue = parseInt(value, 10); // Parse the string to a number
+      return !isNaN(numberValue) && numberValue >= 1;
+    },
+    {
+      message: "pageCount must be a number and at least 1.",
+    }
+  ),
+  price: z.string().refine(
+    (value) => {
+      const numberValue = parseInt(value, 10); // Parse the string to a number
+      return !isNaN(numberValue) && numberValue >= 1;
+    },
+    {
+      message: "price must be a number and at least 1.",
+    }
+  ),
 });
 
 const getAllBooks = gql`
@@ -176,11 +192,11 @@ function useFetchBooks() {
   const { data, error, loading, refetch } = useQuery(getAllBooks, {
     fetchPolicy: "no-cache",
   });
-  return { data, error, loading };
+  return { data, error, loading, refetch };
 }
 
 const Books = () => {
-  const { data, error, loading } = useFetchBooks();
+  const { data, error, loading, refetch } = useFetchBooks();
   const [removebook] = useMutation(deletebookMutation, {
     refetchQueries: [
       getAllBooks, // DocumentNode object parsed with gql
@@ -201,7 +217,20 @@ const Books = () => {
   });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    // defaultValues: setFormData(),
+    defaultValues: {
+      id: undefined,
+      summary: undefined,
+      title: undefined,
+      format: undefined,
+      authorId: undefined,
+      genres: undefined,
+      publicationDate: undefined,
+      publisher: undefined,
+      isbn: undefined,
+      language: undefined,
+      pageCount: "0",
+      price: "0",
+    },
   });
   function setFormData(book: any) {
     form.reset({
@@ -221,22 +250,53 @@ const Books = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await handleEditbook({
-      id: values.id,
-      authorId: values.authorId,
-      title: values.title,
-      publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
-      publisher: values.publisher,
-      summary: values.summary,
-      isbn: values.isbn,
-      language: values.language,
-      pageCount: Number(values.pageCount),
-      price: Number(values.price),
-      format: values.format.split(","),
-      genres: values.genres.split(","),
+    try {
+      await handleEditbook({
+        id: values.id,
+        authorId: values.authorId,
+        title: values.title,
+        publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
+        publisher: values.publisher,
+        summary: values.summary,
+        isbn: values.isbn,
+        language: values.language,
+        pageCount: Number(values.pageCount),
+        price: Number(values.price),
+        format: values.format.split(","),
+        genres: values.genres.split(","),
+      });
+      alert("Success! Please close the form ");
+    } catch (error) {
+      alert("Error editing book:" + error);
+    }
+  }
+
+  const handleAddAuthor = async (values: z.infer<typeof formSchema>) => {
+    await addbook({
+      variables: {
+        title: values.title,
+        genres: values.genres.split(","),
+        publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
+        publisher: values.publisher,
+        summary: values.summary,
+        isbn: values.isbn,
+        language: values.language,
+        pageCount: Number(values.pageCount),
+        price: Number(values.price),
+        format: values.format.split(","),
+        authorId: values.authorId,
+      },
     });
-    alert("Success! Please close the form ");
-    // form.reset();
+  };
+
+  async function onSubmitADD(values: z.infer<typeof formSchema>) {
+    try {
+      console.log(values);
+      await handleAddAuthor(values);
+      alert("Success! Please close the form ");
+    } catch (error) {
+      alert("Error editing author:" + error);
+    }
   }
 
   if (error) {
@@ -255,32 +315,291 @@ const Books = () => {
     }
   };
   const handleEditbook = async (values: any) => {
-    try {
-      const result = await editbook({
-        variables: {
-          id: values.id,
-          authorId: values.authorId,
-          title: values.title,
-          genres: values.genres,
-          publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
-          publisher: values.publisher,
-          summary: values.summary,
-          isbn: values.isbn,
-          language: values.language,
-          pageCount: Number(values.pageCount),
-          price: Number(values.price),
-          format: values.format,
-        },
-      });
-    } catch (error) {
-      alert("Error editing book:" + error);
-    }
+    const result = await editbook({
+      variables: {
+        id: values.id,
+        authorId: values.authorId,
+        title: values.title,
+        genres: values.genres,
+        publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
+        publisher: values.publisher,
+        summary: values.summary,
+        isbn: values.isbn,
+        language: values.language,
+        pageCount: Number(values.pageCount),
+        price: Number(values.price),
+        format: values.format,
+      },
+    });
   };
-  const resetForm = (value: any) => {
+  const resetForm = () => {
     form.reset();
+    refetch();
   };
   return (
     <div>
+      <div className="p-0 m-10 grid grid-cols-6 gap-6">
+        <Dialog onOpenChange={resetForm}>
+          <DialogTrigger asChild>
+            <Button variant="outline" onClick={() => resetForm}>
+              ADD
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] border border-white bg-black  h-3/4 overflow-x-auto">
+            <DialogHeader>
+              <DialogTitle>ADD book</DialogTitle>
+              <DialogDescription>
+                Make changes to add book here. Click save when you are done.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmitADD)}
+                className="space-y-8"
+              >
+                <input type="hidden" value="" {...form.register("id")} />
+
+                <FormField
+                  control={form.control}
+                  name="authorId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> authorId</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder=""
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>This is your authorId.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> title</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder=""
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>This is your title.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="publisher"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> publisher</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder=""
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>This is your publisher.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="summary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> summary</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder=""
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>This is your summary.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="language"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> language</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder=""
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>This is your language.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="pageCount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> pageCount</FormLabel>
+                      <FormControl>
+                        <Input
+                          min={1}
+                          {...field}
+                          type="number"
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>This is your pageCount.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> price</FormLabel>
+                      <FormControl>
+                        <Input
+                          min={1}
+                          type="number"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>This is your price.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="publicationDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>publicationDate</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-[240px] pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            className="bg-black"
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>Your date of birth.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="genres"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Genres</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder=""
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter genres separated by commas.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="format"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Format</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder=""
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter formats separated by commas.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isbn"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ISBN</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder=""
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>Enter ISBN.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button className="border border-white" type="submit">
+                  Submit
+                </Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
       <div className="p-0 m-10 grid grid-cols-6 gap-6">
         {data?.books?.map((book: any) => (
           <Card key={book?._id} className="flex flex-col justify-center">

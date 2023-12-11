@@ -168,11 +168,11 @@ function useFetchAuthors() {
   const { data, error, loading, refetch } = useQuery(getAllAuthors, {
     fetchPolicy: "no-cache",
   });
-  return { data, error, loading };
+  return { data, error, loading, refetch };
 }
 
 const Authors = () => {
-  const { data, error, loading } = useFetchAuthors();
+  const { data, error, loading, refetch } = useFetchAuthors();
   const [removeAuthor] = useMutation(deleteAuthorMutation, {
     refetchQueries: [
       getAllAuthors, // DocumentNode object parsed with gql
@@ -195,24 +195,31 @@ const Authors = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      first_name: "",
-      last_name: "",
+      id: undefined,
+      first_name: undefined,
+      last_name: undefined,
+      hometownCity: undefined,
+      hometownState: undefined,
       date_of_birth: undefined,
-      hometownCity: "",
-      hometownState: "",
     },
   });
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await handleEditAuthor(values);
-    alert("Success! Please close the form ");
-    form.reset();
+    try {
+      await handleEditAuthor(values);
+      alert("Success! Please close the form ");
+    } catch (error) {
+      alert("Error editing author:" + error);
+    }
   }
   async function onSubmitADD(values: z.infer<typeof formSchema>) {
-    await handleAddAuthor(values);
-    alert("Success! Please close the form ");
-    form.reset();
+    try {
+      await handleAddAuthor(values);
+      alert("Success! Please close the form ");
+    } catch (error) {
+      alert("Error editing author:" + error);
+    }
   }
 
   if (error) {
@@ -236,45 +243,39 @@ const Authors = () => {
   const handleDeleteAuthor = async (id: string) => {
     try {
       await removeAuthor({ variables: { id } });
+      alert("Successfully deleted the author ");
     } catch (error) {
       alert("Error deleting author:" + error);
     }
   };
   const handleEditAuthor = async (values: any) => {
-    try {
-      const result = await editAuthor({
-        variables: {
-          id: values.id,
-          firstName: values.first_name.toString().trim(),
-          lastName: values.last_name.toString().trim(),
-          dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
-          hometownCity: values.hometownCity.toString().trim(),
-          hometownState: values.hometownState.toString().trim(),
-        },
-      });
-    } catch (error) {
-      alert("Error editing author:" + error);
-    }
+    const result = await editAuthor({
+      variables: {
+        id: values.id,
+        firstName: values.first_name.toString().trim(),
+        lastName: values.last_name.toString().trim(),
+        dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
+        hometownCity: values.hometownCity.toString().trim(),
+        hometownState: values.hometownState.toString().trim(),
+      },
+    });
   };
-  const resetForm = (value: any) => {
+  const resetForm = () => {
     form.reset();
+    refetch();
   };
 
   const handleAddAuthor = async (values: any) => {
-    try {
-      const result = await addAuthor({
-        variables: {
-          id: values.id,
-          firstName: values.first_name.toString().trim(),
-          lastName: values.last_name.toString().trim(),
-          dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
-          hometownCity: values.hometownCity.toString().trim(),
-          hometownState: values.hometownState.toString().trim(),
-        },
-      });
-    } catch (error) {
-      alert("Error editing author:" + error);
-    }
+    const result = await addAuthor({
+      variables: {
+        id: values.id,
+        firstName: values.first_name.toString().trim(),
+        lastName: values.last_name.toString().trim(),
+        dateOfBirth: dayjs(values.date_of_birth).format("MM/DD/YYYY"),
+        hometownCity: values.hometownCity.toString().trim(),
+        hometownState: values.hometownState.toString().trim(),
+      },
+    });
   };
 
   return (
@@ -282,7 +283,9 @@ const Authors = () => {
       <div className="p-0 m-10 grid grid-cols-6 gap-6">
         <Dialog onOpenChange={resetForm}>
           <DialogTrigger asChild>
-            <Button variant="outline">ADD AUTHOR</Button>
+            <Button variant="outline" onClick={() => resetForm}>
+              ADD AUTHOR
+            </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] border border-white bg-black">
             <DialogHeader>

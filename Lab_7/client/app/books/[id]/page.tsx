@@ -72,8 +72,24 @@ const formSchema = z.object({
   language: z.string().trim().min(1, {
     message: "language must be at least 1 characters.",
   }),
-  pageCount: z.number(),
-  price: z.number(),
+  pageCount: z.string().refine(
+    (value) => {
+      const numberValue = parseInt(value, 10); // Parse the string to a number
+      return !isNaN(numberValue) && numberValue >= 1;
+    },
+    {
+      message: "pageCount must be a number and at least 1.",
+    }
+  ),
+  price: z.string().refine(
+    (value) => {
+      const numberValue = parseInt(value, 10); // Parse the string to a number
+      return !isNaN(numberValue) && numberValue >= 1;
+    },
+    {
+      message: "price must be a number and at least 1.",
+    }
+  ),
 });
 
 const getAllBooks = gql`
@@ -219,22 +235,27 @@ const Books = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await handleEditbook({
-      id: values.id,
-      authorId: values.authorId,
-      title: values.title,
-      publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
-      publisher: values.publisher,
-      summary: values.summary,
-      isbn: values.isbn,
-      language: values.language,
-      pageCount: Number(values.pageCount),
-      price: Number(values.price),
-      format: values.format.split(","),
-      genres: values.genres.split(","),
-    });
-    alert("Success! Please close the form ");
-    // form.reset();
+    try {
+      await handleEditbook({
+        id: values.id,
+        authorId: values.authorId,
+        title: values.title,
+        publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
+        publisher: values.publisher,
+        summary: values.summary,
+        isbn: values.isbn,
+        language: values.language,
+        pageCount: Number(values.pageCount),
+        price: Number(values.price),
+        format: values.format.split(","),
+        genres: values.genres.split(","),
+      });
+      alert("Success! Please close the form ");
+    } catch (error) {
+      console.log({ error });
+
+      alert("Error editing book:" + error);
+    }
   }
   if (redirect) {
     router.push("/books");
@@ -257,30 +278,24 @@ const Books = () => {
     }
   };
   const handleEditbook = async (values: any) => {
-    try {
-      const result = await editbook({
-        variables: {
-          id: values.id,
-          authorId: values.authorId,
-          title: values.title,
-          genres: values.genres,
-          publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
-          publisher: values.publisher,
-          summary: values.summary,
-          isbn: values.isbn,
-          language: values.language,
-          pageCount: Number(values.pageCount),
-          price: Number(values.price),
-          format: values.format,
-        },
-      });
-    } catch (error) {
-      console.log({ error });
-
-      alert("Error editing book:" + error);
-    }
+    const result = await editbook({
+      variables: {
+        id: values.id,
+        authorId: values.authorId,
+        title: values.title,
+        genres: values.genres,
+        publicationDate: dayjs(values.publicationDate).format("MM/DD/YYYY"),
+        publisher: values.publisher,
+        summary: values.summary,
+        isbn: values.isbn,
+        language: values.language,
+        pageCount: Number(values.pageCount),
+        price: Number(values.price),
+        format: values.format,
+      },
+    });
   };
-  const resetForm = (value: any) => {
+  const resetForm = () => {
     form.reset();
   };
   let displayData = data?.getBookById;
@@ -425,6 +440,7 @@ const Books = () => {
                           <FormLabel> pageCount</FormLabel>
                           <FormControl>
                             <Input
+                              min={1}
                               {...field}
                               type="number"
                               value={field.value ?? ""}
@@ -446,6 +462,7 @@ const Books = () => {
                           <FormLabel> price</FormLabel>
                           <FormControl>
                             <Input
+                              min={1}
                               type="number"
                               {...field}
                               value={field.value ?? ""}
